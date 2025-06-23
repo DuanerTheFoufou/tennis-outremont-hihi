@@ -1,36 +1,43 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 import InteractiveCalendar from '../components/InteractiveCalendar';
 import CourtSelector from '../components/CourtSelector';
 
 const Submit = () => {
-  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    displayName: '',
+    level: 'Débutant',
     phone: '',
-    level: '',
-    availability: [],
+    bio: '',
     courts: [],
-    notes: ''
+    availability: []
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const { currentUser, updateUserProfile } = useAuth();
+  const navigate = useNavigate();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const levels = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 
-  const levels = [
-    { value: 'debutant', label: 'Débutant (0-2 ans)', description: 'Apprentissage des bases' },
-    { value: 'intermediaire', label: 'Intermédiaire (2-5 ans)', description: 'Technique en développement' },
-    { value: 'avance', label: 'Avancé (5+ ans)', description: 'Joueur expérimenté' },
-    { value: 'expert', label: 'Expert/Compétitif', description: 'Niveau compétition' }
-  ];
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [field]: value
+    }));
+  };
+
+  const handleCourtToggle = (courtId) => {
+    setFormData(prev => ({
+      ...prev,
+      courts: prev.courts.includes(courtId)
+        ? prev.courts.filter(id => id !== courtId)
+        : [...prev.courts, courtId]
     }));
   };
 
@@ -40,444 +47,371 @@ const Submit = () => {
         ...prev,
         availability: []
       }));
-      return;
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        availability: prev.availability.includes(timeKey)
+          ? prev.availability.filter(t => t !== timeKey)
+          : [...prev.availability, timeKey]
+      }));
     }
-    
-    setFormData(prev => ({
-      ...prev,
-      availability: prev.availability.includes(timeKey)
-        ? prev.availability.filter(item => item !== timeKey)
-        : [...prev.availability, timeKey]
-    }));
   };
 
-  const handleCourtToggle = (courtId) => {
-    setFormData(prev => ({
-      ...prev,
-      courts: prev.courts.includes(courtId)
-        ? prev.courts.filter(item => item !== courtId)
-        : [...prev.courts, courtId]
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validate required fields
-    if (!formData.name || !formData.email || !formData.level) {
-      alert('Veuillez remplir tous les champs obligatoires.');
+  const handleSubmit = async () => {
+    if (!currentUser) {
+      setError('Vous devez être connecté pour créer un profil');
       return;
     }
 
-    setIsSubmitting(true);
+    if (!formData.displayName.trim()) {
+      setError('Le nom est requis');
+      return;
+    }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    setLoading(true);
+    setError('');
 
-    // Get existing players from localStorage
-    const existingPlayers = JSON.parse(localStorage.getItem('tennisPlayers') || '[]');
-    
-    // Add new player with timestamp
-    const newPlayer = {
-      ...formData,
-      id: Date.now(),
-      createdAt: new Date().toISOString()
-    };
+    try {
+      // Mettre à jour le profil utilisateur dans Firestore
+      await updateUserProfile({
+        displayName: formData.displayName,
+        level: formData.level,
+        phone: formData.phone,
+        bio: formData.bio,
+        courts: formData.courts,
+        availability: formData.availability,
+        updatedAt: new Date().toISOString()
+      });
 
-    // Save to localStorage
-    localStorage.setItem('tennisPlayers', JSON.stringify([...existingPlayers, newPlayer]));
-
-    setIsSubmitting(false);
-    navigate('/players');
+      // Rediriger vers la page des joueurs
+      navigate('/players');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      setError('Une erreur est survenue lors de la sauvegarde');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const nextStep = () => {
-    // Validate current step before proceeding
-    if (currentStep === 1 && (!formData.name || !formData.email)) {
-      alert('Veuillez remplir votre nom et email avant de continuer.');
+    if (step === 1 && !formData.displayName.trim()) {
+      setError('Le nom est requis');
       return;
     }
-    if (currentStep === 2 && !formData.level) {
-      alert('Veuillez sélectionner votre niveau de tennis.');
-      return;
-    }
-    setCurrentStep(prev => Math.min(prev + 1, 4));
+    setError('');
+    setStep(step + 1);
   };
-  
-  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  const prevStep = () => {
+    setError('');
+    setStep(step - 1);
+  };
 
   const steps = [
     { number: 1, title: 'Informations Personnelles', icon: '👤' },
-    { number: 2, title: 'Niveau de Tennis', icon: '🎾' },
+    { number: 2, title: 'Sélection des Terrains', icon: '🏟️' },
     { number: 3, title: 'Disponibilité', icon: '📅' },
-    { number: 4, title: 'Terrains Préférés', icon: '🏟️' }
+    { number: 4, title: 'Confirmation', icon: '✅' }
   ];
 
-  const buttonVariants = {
-    hover: {
-      scale: 1.05,
-      y: -2,
-      boxShadow: "0 8px 25px rgba(0, 0, 0, 0.15)",
-      transition: {
-        duration: 0.15,
-        ease: [0.25, 0.46, 0.45, 0.94]
-      }
-    },
-    tap: {
-      scale: 0.95,
-      transition: {
-        duration: 0.1,
-        ease: [0.25, 0.46, 0.45, 0.94]
-      }
-    }
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="min-h-screen py-12 bg-gradient-to-br from-green-50 to-blue-50"
-    >
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      <div className="container mx-auto px-6 py-12">
         {/* Header */}
-        <div className="text-center mb-8">
-          <motion.h1
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-4xl font-bold text-gray-900 mb-4"
-          >
-            Rejoignez la Communauté Tennis
-          </motion.h1>
-          <motion.p
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-xl text-gray-600"
-          >
-            Créez votre profil et trouvez des partenaires de tennis à Outremont
-          </motion.p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            Créer votre Profil
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Rejoignez la communauté Tennis Outremont et trouvez votre partenaire idéal
+          </p>
+        </motion.div>
 
         {/* Progress Steps */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-8"
         >
-          <div className="flex items-center justify-center space-x-4">
-            {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center">
-                <motion.div 
-                  className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-500 ease-out ${
-                    currentStep >= step.number
-                      ? 'bg-green-600 border-green-600 text-white scale-110'
-                      : 'bg-white border-gray-300 text-gray-400'
-                  }`}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                >
-                  <span className="text-lg">{step.icon}</span>
-                </motion.div>
-                {index < steps.length - 1 && (
-                  <motion.div 
-                    className={`w-16 h-0.5 transition-all duration-500 ease-out ${
-                      currentStep > step.number ? 'bg-green-600' : 'bg-gray-300'
+          <div className="flex justify-center">
+            <div className="flex space-x-4">
+              {steps.map((stepItem, index) => (
+                <div key={stepItem.number} className="flex items-center">
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ 
+                      scale: 1, 
+                      opacity: 1,
+                      backgroundColor: step >= stepItem.number ? '#16a34a' : '#e5e7eb'
+                    }}
+                    transition={{ 
+                      delay: 0.3 + index * 0.1, 
+                      duration: 0.6, 
+                      ease: [0.25, 0.46, 0.45, 0.94] 
+                    }}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg ${
+                      step >= stepItem.number ? 'bg-green-500' : 'bg-gray-300'
                     }`}
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: currentStep > step.number ? 1 : 0 }}
-                    transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  />
-                )}
-              </div>
-            ))}
+                  >
+                    {step > stepItem.number ? '✓' : stepItem.icon}
+                  </motion.div>
+                  {index < steps.length - 1 && (
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: step > stepItem.number ? 1 : 0 }}
+                      transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
+                      className={`w-16 h-1 mx-2 rounded-full ${
+                        step > stepItem.number ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+          
           <div className="text-center mt-4">
-            <motion.p 
-              key={currentStep}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="text-lg font-semibold text-gray-900"
-            >
-              {steps[currentStep - 1].title}
-            </motion.p>
+            <h2 className="text-xl font-semibold text-gray-800">
+              {steps[step - 1].title}
+            </h2>
           </div>
         </motion.div>
 
-        {/* Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
-        >
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Step 1: Personal Information */}
-            {currentStep === 1 && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="space-y-6"
-              >
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">👤 Vos Informations</h3>
-                  <p className="text-gray-600">Commençons par vos coordonnées</p>
-                </div>
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center"
+          >
+            {error}
+          </motion.div>
+        )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Form Content */}
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="max-w-4xl mx-auto"
+        >
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50"
+              >
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Informations Personnelles</h3>
+                
+                <div className="space-y-6">
                   <div>
-                    <label htmlFor="name" className="label">Nom Complet *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nom complet *
+                    </label>
                     <input
                       type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="input-field"
+                      value={formData.displayName}
+                      onChange={(e) => handleInputChange('displayName', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                       placeholder="Votre nom complet"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="label">Adresse Email *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Niveau de jeu
+                    </label>
+                    <select
+                      value={formData.level}
+                      onChange={(e) => handleInputChange('level', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    >
+                      {levels.map(level => (
+                        <option key={level} value={level}>{level}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Téléphone (optionnel)
+                    </label>
                     <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="input-field"
-                      placeholder="votre.email@exemple.com"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Votre numéro de téléphone"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Bio (optionnel)
+                    </label>
+                    <textarea
+                      value={formData.bio}
+                      onChange={(e) => handleInputChange('bio', e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Parlez-nous un peu de vous, votre style de jeu, vos préférences..."
                     />
                   </div>
                 </div>
-
-                <div>
-                  <label htmlFor="phone" className="label">Numéro de Téléphone</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="input-field"
-                    placeholder="(514) 555-0123 (optionnel)"
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <motion.button
-                    type="button"
-                    onClick={nextStep}
-                    disabled={!formData.name || !formData.email}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:y-0"
-                  >
-                    Suivant →
-                  </motion.button>
-                </div>
               </motion.div>
             )}
 
-            {/* Step 2: Tennis Level */}
-            {currentStep === 2 && (
+            {step === 2 && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="space-y-6"
-              >
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">🎾 Votre Niveau</h3>
-                  <p className="text-gray-600">Sélectionnez votre niveau de tennis</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {levels.map((level) => (
-                    <motion.label
-                      key={level.value}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      className={`
-                        relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ease-out
-                        ${formData.level === level.value
-                          ? 'border-green-500 bg-green-50 shadow-lg'
-                          : 'border-gray-200 bg-white hover:border-gray-300 shadow-md hover:shadow-lg'
-                        }
-                      `}
-                    >
-                      <input
-                        type="radio"
-                        name="level"
-                        value={level.value}
-                        checked={formData.level === level.value}
-                        onChange={handleInputChange}
-                        required
-                        className="sr-only"
-                      />
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ease-out ${
-                          formData.level === level.value
-                            ? 'border-green-500 bg-green-500'
-                            : 'border-gray-300'
-                        }`}>
-                          {formData.level === level.value && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: "spring", stiffness: 400, damping: 25, ease: [0.25, 0.46, 0.45, 0.94] }}
-                              className="w-2 h-2 bg-white rounded-full"
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-900">{level.label}</div>
-                          <div className="text-sm text-gray-600">{level.description}</div>
-                        </div>
-                      </div>
-                    </motion.label>
-                  ))}
-                </div>
-
-                <div className="flex justify-between">
-                  <motion.button
-                    type="button"
-                    onClick={prevStep}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="btn-secondary"
-                  >
-                    ← Précédent
-                  </motion.button>
-                  <motion.button
-                    type="button"
-                    onClick={nextStep}
-                    disabled={!formData.level}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:y-0"
-                  >
-                    Suivant →
-                  </motion.button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Step 3: Availability */}
-            {currentStep === 3 && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="space-y-6"
-              >
-                <InteractiveCalendar
-                  selectedTimes={formData.availability}
-                  onTimeToggle={handleTimeToggle}
-                />
-
-                <div className="flex justify-between">
-                  <motion.button
-                    type="button"
-                    onClick={prevStep}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="btn-secondary"
-                  >
-                    ← Précédent
-                  </motion.button>
-                  <motion.button
-                    type="button"
-                    onClick={nextStep}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="btn-primary"
-                  >
-                    Suivant →
-                  </motion.button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Step 4: Court Selection */}
-            {currentStep === 4 && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="space-y-6"
+                key="step2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
                 <CourtSelector
                   selectedCourts={formData.courts}
                   onCourtToggle={handleCourtToggle}
                 />
+              </motion.div>
+            )}
 
-                <div className="space-y-4">
-                  <label htmlFor="notes" className="label">Notes Additionnelles</label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                    rows={4}
-                    className="input-field"
-                    placeholder="Informations supplémentaires sur votre style de jeu, préférences ou exigences particulières..."
-                  />
-                </div>
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <InteractiveCalendar
+                  selectedTimes={formData.availability}
+                  onTimeToggle={handleTimeToggle}
+                />
+              </motion.div>
+            )}
 
-                <div className="flex justify-between">
-                  <motion.button
-                    type="button"
-                    onClick={prevStep}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="btn-secondary"
-                  >
-                    ← Précédent
-                  </motion.button>
-                  <motion.button
-                    type="submit"
-                    disabled={isSubmitting}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="btn-primary text-lg px-8 py-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:y-0"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Envoi en cours...</span>
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50"
+              >
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Confirmation</h3>
+                
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-3">Informations Personnelles</h4>
+                      <div className="space-y-2 text-gray-600">
+                        <p><strong>Nom:</strong> {formData.displayName}</p>
+                        <p><strong>Niveau:</strong> {formData.level}</p>
+                        {formData.phone && <p><strong>Téléphone:</strong> {formData.phone}</p>}
+                        {formData.bio && <p><strong>Bio:</strong> {formData.bio}</p>}
                       </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800 mb-3">Terrains Sélectionnés</h4>
+                      {formData.courts.length > 0 ? (
+                        <div className="space-y-2">
+                          {formData.courts.map(courtId => (
+                            <span key={courtId} className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm mr-2 mb-2">
+                              {courtId}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500">Aucun terrain sélectionné</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-3">Disponibilité</h4>
+                    {formData.availability.length > 0 ? (
+                      <p className="text-gray-600">
+                        {formData.availability.length} créneau{formData.availability.length > 1 ? 'x' : ''} sélectionné{formData.availability.length > 1 ? 's' : ''}
+                      </p>
                     ) : (
-                      'Créer Mon Profil 🎾'
+                      <p className="text-gray-500">Aucune disponibilité sélectionnée</p>
                     )}
-                  </motion.button>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <p className="text-green-800 text-sm">
+                      ✅ Votre profil sera visible par tous les joueurs de la communauté Tennis Outremont
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             )}
-          </form>
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Navigation Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="flex justify-between items-center mt-8 max-w-4xl mx-auto"
+        >
+          <motion.button
+            onClick={prevStep}
+            disabled={step === 1}
+            whileHover={{ scale: step > 1 ? 1.05 : 1 }}
+            whileTap={{ scale: step > 1 ? 0.95 : 1 }}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              step > 1
+                ? 'bg-gray-500 hover:bg-gray-600 text-white shadow-md hover:shadow-lg'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Précédent
+          </motion.button>
+
+          {step < 4 ? (
+            <motion.button
+              onClick={nextStep}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Continuer
+            </motion.button>
+          ) : (
+            <motion.button
+              onClick={handleSubmit}
+              disabled={loading}
+              whileHover={{ scale: loading ? 1 : 1.05, y: loading ? 0 : -2 }}
+              whileTap={{ scale: loading ? 1 : 0.95 }}
+              className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mx-auto"
+                />
+              ) : (
+                'Créer mon Profil'
+              )}
+            </motion.button>
+          )}
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

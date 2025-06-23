@@ -1,107 +1,88 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
+import InteractiveCalendar from '../components/InteractiveCalendar';
 
 const Players = () => {
   const [players, setPlayers] = useState([]);
   const [filteredPlayers, setFilteredPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [filters, setFilters] = useState({
-    level: '',
-    courts: [],
-    availability: []
-  });
   const [searchTerm, setSearchTerm] = useState('');
-  const [showResetModal, setShowResetModal] = useState(false);
+  const [levelFilter, setLevelFilter] = useState('Tous');
+  const [selectedTimes, setSelectedTimes] = useState([]);
+  const { currentUser } = useAuth();
+
+  const levels = ['Tous', 'Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 
   useEffect(() => {
-    const storedPlayers = JSON.parse(localStorage.getItem('tennisPlayers') || '[]');
-    setPlayers(storedPlayers);
-    setFilteredPlayers(storedPlayers);
+    loadPlayers();
   }, []);
 
   useEffect(() => {
-    let filtered = players;
+    filterPlayers();
+  }, [players, searchTerm, levelFilter, selectedTimes]);
 
-    // Search filter
+  const loadPlayers = async () => {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('uid', '!=', currentUser?.uid));
+      const querySnapshot = await getDocs(q);
+      
+      const playersData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      setPlayers(playersData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des joueurs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterPlayers = () => {
+    let filtered = players.filter(player => 
+      player.uid !== currentUser?.uid
+    );
+
+    // Filtre par recherche
     if (searchTerm) {
       filtered = filtered.filter(player =>
-        player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        player.email.toLowerCase().includes(searchTerm.toLowerCase())
+        player.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        player.bio?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Level filter
-    if (filters.level) {
-      filtered = filtered.filter(player => player.level === filters.level);
+    // Filtre par niveau
+    if (levelFilter !== 'Tous') {
+      filtered = filtered.filter(player => player.level === levelFilter);
     }
 
-    // Courts filter
-    if (filters.courts.length > 0) {
-      filtered = filtered.filter(player =>
-        player.courts.some(court => filters.courts.includes(court))
-      );
-    }
-
-    // Availability filter
-    if (filters.availability.length > 0) {
-      filtered = filtered.filter(player =>
-        player.availability.some(time => filters.availability.includes(time))
-      );
+    // Filtre par disponibilité
+    if (selectedTimes.length > 0) {
+      filtered = filtered.filter(player => {
+        if (!player.availability || player.availability.length === 0) return false;
+        return selectedTimes.some(time => player.availability.includes(time));
+      });
     }
 
     setFilteredPlayers(filtered);
-  }, [players, searchTerm, filters]);
-
-  const levels = [
-    { value: 'debutant', label: 'Débutant', color: 'bg-blue-100 text-blue-800' },
-    { value: 'intermediaire', label: 'Intermédiaire', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'avance', label: 'Avancé', color: 'bg-orange-100 text-orange-800' },
-    { value: 'expert', label: 'Expert', color: 'bg-red-100 text-red-800' }
-  ];
-
-  const courts = [
-    { id: 'saint-viateur', name: 'Terrains Saint-Viateur' },
-    { id: 'fx-garneau', name: 'Terrains FX-Garneau' },
-    { id: 'joyce', name: 'Terrains Joyce' }
-  ];
-
-  const timeSlots = [
-    { key: 'morning', label: 'Matin' },
-    { key: 'afternoon', label: 'Après-midi' },
-    { key: 'evening', label: 'Soirée' }
-  ];
-
-  const days = [
-    { key: 'monday', label: 'Lun', short: 'L' },
-    { key: 'tuesday', label: 'Mar', short: 'M' },
-    { key: 'wednesday', label: 'Mer', short: 'M' },
-    { key: 'thursday', label: 'Jeu', short: 'J' },
-    { key: 'friday', label: 'Ven', short: 'V' },
-    { key: 'saturday', label: 'Sam', short: 'S' },
-    { key: 'sunday', label: 'Dim', short: 'D' }
-  ];
-
-  const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterType]: Array.isArray(prev[filterType])
-        ? prev[filterType].includes(value)
-          ? prev[filterType].filter(item => item !== value)
-          : [...prev[filterType], value]
-        : value
-    }));
   };
 
-  const clearFilters = () => {
-    setFilters({ level: '', courts: [], availability: [] });
-    setSearchTerm('');
-  };
-
-  const resetAllData = () => {
-    localStorage.removeItem('tennisPlayers');
-    setPlayers([]);
-    setFilteredPlayers([]);
-    setShowResetModal(false);
+  const handleTimeToggle = (timeKey) => {
+    if (timeKey === 'clear-all') {
+      setSelectedTimes([]);
+    } else {
+      setSelectedTimes(prev => 
+        prev.includes(timeKey) 
+          ? prev.filter(t => t !== timeKey)
+          : [...prev, timeKey]
+      );
+    }
   };
 
   const openPlayerModal = (player) => {
@@ -113,355 +94,218 @@ const Players = () => {
   };
 
   const sendEmail = (email) => {
-    window.open(`mailto:${email}?subject=Partenaire de Tennis - Outremont`, '_blank');
+    window.open(`mailto:${email}?subject=Proposition de match - Tennis Outremont`);
   };
 
-  const isTimeSelected = (availability, day, time) => {
-    const timeKey = `${day}-${time}`;
-    return availability.includes(timeKey);
-  };
-
-  const AvailabilityCalendar = ({ availability, compact = false }) => {
-    if (!availability || availability.length === 0) {
-      return (
-        <div className="text-center py-4">
-          <p className="text-gray-500 text-sm">Aucune disponibilité</p>
-        </div>
-      );
-    }
-
+  if (loading) {
     return (
-      <div className={`${compact ? 'scale-75 origin-top-left' : ''}`}>
-        {/* Mini Calendar Grid */}
-        <div className="grid grid-cols-8 gap-1">
-          {/* Empty corner */}
-          <div className="h-6"></div>
-          
-          {/* Day headers */}
-          {days.map((day) => (
-            <div key={day.key} className="h-6 flex items-center justify-center">
-              <span className="text-xs font-semibold text-gray-600">{day.short}</span>
-            </div>
-          ))}
-
-          {/* Time slots */}
-          {timeSlots.map((timeSlot) => (
-            <div key={timeSlot.key} className="contents">
-              {/* Time label */}
-              <div className="h-6 flex items-center justify-center">
-                <span className="text-xs text-gray-500">{timeSlot.label.charAt(0)}</span>
-              </div>
-
-              {/* Day cells */}
-              {days.map((day) => {
-                const selected = isTimeSelected(availability, day.key, timeSlot.key);
-                return (
-                  <motion.div
-                    key={`${day.key}-${timeSlot.key}`}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ 
-                      delay: Math.random() * 0.3, 
-                      duration: 0.3, 
-                      ease: [0.25, 0.46, 0.45, 0.94] 
-                    }}
-                    className={`
-                      w-6 h-6 rounded-sm border transition-all duration-200 ease-out
-                      ${selected 
-                        ? 'bg-emerald-500 border-emerald-600 shadow-sm' 
-                        : 'bg-gray-100 border-gray-200'
-                      }
-                    `}
-                  >
-                    {selected && (
-                      <motion.div
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ 
-                          type: "spring", 
-                          stiffness: 500, 
-                          damping: 30,
-                          ease: [0.25, 0.46, 0.45, 0.94]
-                        }}
-                        className="w-full h-full flex items-center justify-center"
-                      >
-                        <div className="text-white text-xs font-bold">✓</div>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center justify-center space-x-4 mt-3 text-xs">
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded-sm"></div>
-            <span className="text-gray-500">Non disponible</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 bg-emerald-500 border border-emerald-600 rounded-sm flex items-center justify-center">
-              <span className="text-white text-xs">✓</span>
-            </div>
-            <span className="text-gray-500">Disponible</span>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 text-lg">Chargement des joueurs...</p>
+        </motion.div>
       </div>
     );
-  };
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="min-h-screen py-12 bg-gradient-to-br from-green-50 to-blue-50"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+      <div className="container mx-auto px-6 py-12">
         {/* Header */}
-        <div className="text-center mb-12">
-          <motion.h1
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-4xl font-bold text-gray-900 mb-4"
-          >
-            🎾 Joueurs de Tennis à Outremont
-          </motion.h1>
-          <motion.p
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-xl text-gray-600 mb-6"
-          >
-            Trouvez votre partenaire de tennis idéal
-          </motion.p>
-          
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="flex items-center justify-center space-x-4"
-          >
-            <div className="bg-white rounded-full px-6 py-3 shadow-lg border border-gray-100">
-              <span className="text-lg font-semibold text-gray-900">
-                {filteredPlayers.length} joueur{filteredPlayers.length > 1 ? 's' : ''} trouvé{filteredPlayers.length > 1 ? 's' : ''}
-              </span>
-            </div>
-            <motion.button
-              onClick={() => setShowResetModal(true)}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ease-out shadow-lg hover:shadow-xl"
-            >
-              🔄 Reset Données
-            </motion.button>
-          </motion.div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            Joueurs Disponibles
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Découvrez les joueurs de tennis passionnés dans votre quartier et trouvez votre partenaire idéal
+          </p>
+        </motion.div>
 
         {/* Filters */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-8"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {/* Search */}
             <div>
-              <label className="label">🔍 Rechercher</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rechercher
+              </label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Nom ou email..."
-                className="input-field"
+                placeholder="Nom ou bio..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               />
             </div>
 
             {/* Level Filter */}
             <div>
-              <label className="label">🎾 Niveau</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Niveau
+              </label>
               <select
-                value={filters.level}
-                onChange={(e) => handleFilterChange('level', e.target.value)}
-                className="input-field"
+                value={levelFilter}
+                onChange={(e) => setLevelFilter(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               >
-                <option value="">Tous les niveaux</option>
                 {levels.map(level => (
-                  <option key={level.value} value={level.value}>
-                    {level.label}
-                  </option>
+                  <option key={level} value={level}>{level}</option>
                 ))}
               </select>
             </div>
 
-            {/* Courts Filter */}
-            <div>
-              <label className="label">🏟️ Terrains</label>
-              <div className="space-y-2">
-                {courts.map(court => (
-                  <label key={court.id} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filters.courts.includes(court.id)}
-                      onChange={() => handleFilterChange('courts', court.id)}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    <span className="text-sm text-gray-700">{court.name}</span>
-                  </label>
-                ))}
+            {/* Results Count */}
+            <div className="flex items-end">
+              <div className="bg-gradient-to-r from-green-100 to-blue-100 px-4 py-3 rounded-xl border border-green-200">
+                <p className="text-sm text-gray-600">Joueurs trouvés</p>
+                <p className="text-2xl font-bold text-gray-800">{filteredPlayers.length}</p>
               </div>
             </div>
-
-            {/* Availability Filter */}
-            <div>
-              <label className="label">⏰ Disponibilité</label>
-              <div className="space-y-2">
-                {timeSlots.map(time => (
-                  <label key={time.key} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filters.availability.includes(time.key)}
-                      onChange={() => handleFilterChange('availability', time.key)}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    <span className="text-sm text-gray-700">{time.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Clear Filters */}
-          <div className="mt-6 flex justify-center">
-            <motion.button
-              onClick={clearFilters}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="btn-secondary"
-            >
-              🗑️ Effacer les Filtres
-            </motion.button>
           </div>
         </motion.div>
 
+        {/* Availability Filter */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-8"
+        >
+          <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+            Filtrer par disponibilité
+          </h3>
+          <InteractiveCalendar
+            selectedTimes={selectedTimes}
+            onTimeToggle={handleTimeToggle}
+          />
+        </motion.div>
+
         {/* Players Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filteredPlayers.map((player, index) => (
-              <motion.div
-                key={player.id}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                transition={{ 
-                  delay: index * 0.1, 
-                  duration: 0.5, 
-                  ease: [0.25, 0.46, 0.45, 0.94] 
-                }}
-                whileHover={{ 
-                  scale: 1.02, 
-                  y: -8,
-                  transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
-                }}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden cursor-pointer card-hover"
-                onClick={() => openPlayerModal(player)}
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {player.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{player.name}</h3>
-                        <p className="text-sm text-gray-500">{player.email}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* Level */}
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-700">Niveau:</span>
-                      {levels.find(l => l.value === player.level) && (
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${levels.find(l => l.value === player.level).color}`}>
-                          {levels.find(l => l.value === player.level).label}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          {filteredPlayers.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🎾</div>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+                Aucun joueur trouvé
+              </h3>
+              <p className="text-gray-600">
+                Essayez de modifier vos critères de recherche
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPlayers.map((player, index) => (
+                <motion.div
+                  key={player.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    delay: 0.8 + index * 0.1, 
+                    duration: 0.6, 
+                    ease: [0.25, 0.46, 0.45, 0.94] 
+                  }}
+                  whileHover={{ 
+                    y: -8,
+                    transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
+                  }}
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 cursor-pointer hover:shadow-xl transition-all duration-200"
+                  onClick={() => openPlayerModal(player)}
+                >
+                  {/* Player Avatar */}
+                  <div className="flex items-center mb-4">
+                    {player.photoURL ? (
+                      <img
+                        src={player.photoURL}
+                        alt={player.displayName}
+                        className="w-16 h-16 rounded-full mr-4"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
+                        <span className="text-white text-xl font-bold">
+                          {player.displayName?.charAt(0).toUpperCase() || 'J'}
                         </span>
-                      )}
-                    </div>
-
-                    {/* Courts */}
-                    {player.courts && player.courts.length > 0 && (
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Terrains:</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {player.courts.map(courtId => {
-                            const court = courts.find(c => c.id === courtId);
-                            return court ? (
-                              <span key={courtId} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                {court.name}
-                              </span>
-                            ) : null;
-                          })}
-                        </div>
                       </div>
                     )}
-
-                    {/* Availability Calendar */}
-                    {player.availability && player.availability.length > 0 && (
-                      <div>
-                        <span className="text-sm font-medium text-gray-700 mb-2 block">Disponibilité:</span>
-                        <div className="bg-gray-50 rounded-xl p-4">
-                          <AvailabilityCalendar availability={player.availability} compact={true} />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Contact */}
-                    <div className="flex space-x-2 pt-2">
-                      <motion.button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          sendEmail(player.email);
-                        }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ease-out"
-                      >
-                        📧 Contacter
-                      </motion.button>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {player.displayName || 'Joueur'}
+                      </h3>
+                      <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                        {player.level || 'Débutant'}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
 
-        {/* Empty State */}
-        {filteredPlayers.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-center py-12"
-          >
-            <div className="text-6xl mb-4">🎾</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Aucun joueur trouvé
-            </h3>
-            <p className="text-gray-600">
-              Essayez d'ajuster vos filtres ou créez votre propre profil !
-            </p>
-          </motion.div>
-        )}
+                  {/* Bio */}
+                  {player.bio && (
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {player.bio}
+                    </p>
+                  )}
+
+                  {/* Availability Preview */}
+                  {player.availability && player.availability.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        Disponible sur {player.availability.length} créneau{player.availability.length > 1 ? 'x' : ''}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {player.availability.slice(0, 3).map((time, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                          >
+                            {time.split('-')[0]}
+                          </span>
+                        ))}
+                        {player.availability.length > 3 && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                            +{player.availability.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contact Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      sendEmail(player.email);
+                    }}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold py-2 px-4 rounded-xl hover:shadow-lg transition-all duration-200"
+                  >
+                    Contacter
+                  </motion.button>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
       </div>
 
       {/* Player Modal */}
@@ -471,159 +315,110 @@ const Players = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={closePlayerModal}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.8, y: 50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              exit={{ opacity: 0, scale: 0.8, y: 50 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                      {selectedPlayer.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">{selectedPlayer.name}</h2>
-                      <p className="text-gray-600">{selectedPlayer.email}</p>
-                    </div>
+              {/* Modal Header */}
+              <div className="flex items-center mb-6">
+                {selectedPlayer.photoURL ? (
+                  <img
+                    src={selectedPlayer.photoURL}
+                    alt={selectedPlayer.displayName}
+                    className="w-20 h-20 rounded-full mr-6"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mr-6">
+                    <span className="text-white text-2xl font-bold">
+                      {selectedPlayer.displayName?.charAt(0).toUpperCase() || 'J'}
+                    </span>
                   </div>
-                  <motion.button
-                    onClick={closePlayerModal}
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-                  >
-                    ×
-                  </motion.button>
+                )}
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    {selectedPlayer.displayName || 'Joueur'}
+                  </h2>
+                  <span className="inline-block px-4 py-2 bg-green-100 text-green-800 text-lg font-medium rounded-full">
+                    {selectedPlayer.level || 'Débutant'}
+                  </span>
                 </div>
+              </div>
 
-                <div className="space-y-6">
-                  {selectedPlayer.phone && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">📞 Téléphone:</span>
-                      <p className="text-gray-900">{selectedPlayer.phone}</p>
-                    </div>
-                  )}
+              {/* Bio */}
+              {selectedPlayer.bio && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">À propos</h3>
+                  <p className="text-gray-600 leading-relaxed">{selectedPlayer.bio}</p>
+                </div>
+              )}
 
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">🎾 Niveau:</span>
-                    {levels.find(l => l.value === selectedPlayer.level) && (
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-1 ${levels.find(l => l.value === selectedPlayer.level).color}`}>
-                        {levels.find(l => l.value === selectedPlayer.level).label}
-                      </span>
-                    )}
-                  </div>
-
-                  {selectedPlayer.courts && selectedPlayer.courts.length > 0 && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">🏟️ Terrains préférés:</span>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {selectedPlayer.courts.map(courtId => {
-                          const court = courts.find(c => c.id === courtId);
-                          return court ? (
-                            <span key={courtId} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                              {court.name}
-                            </span>
-                          ) : null;
+              {/* Availability */}
+              {selectedPlayer.availability && selectedPlayer.availability.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Disponibilité</h3>
+                  <div className="grid grid-cols-7 gap-2">
+                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
+                      <div key={day} className="text-center">
+                        <div className="text-sm font-medium text-gray-600 mb-2">{day}</div>
+                        {['morning', 'afternoon', 'evening'].map(time => {
+                          const timeKey = `${day.toLowerCase()}-${time}`;
+                          const isAvailable = selectedPlayer.availability.includes(timeKey);
+                          return (
+                            <div
+                              key={time}
+                              className={`w-8 h-8 rounded-lg mb-1 flex items-center justify-center text-xs ${
+                                isAvailable 
+                                  ? 'bg-green-500 text-white' 
+                                  : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              {isAvailable ? '✓' : '×'}
+                            </div>
+                          );
                         })}
                       </div>
-                    </div>
-                  )}
-
-                  {selectedPlayer.availability && selectedPlayer.availability.length > 0 && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-700 mb-3 block">📅 Disponibilité:</span>
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <AvailabilityCalendar availability={selectedPlayer.availability} />
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedPlayer.notes && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">📝 Notes:</span>
-                      <p className="text-gray-900 mt-1">{selectedPlayer.notes}</p>
-                    </div>
-                  )}
-
-                  <div className="flex space-x-3 pt-4">
-                    <motion.button
-                      onClick={() => sendEmail(selectedPlayer.email)}
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      className="flex-1 btn-primary"
-                    >
-                      📧 Envoyer un Email
-                    </motion.button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              )}
 
-      {/* Reset Modal */}
-      <AnimatePresence>
-        {showResetModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowResetModal(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center">
-                <div className="text-6xl mb-4">⚠️</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Reset des Données
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Êtes-vous sûr de vouloir supprimer tous les profils de joueurs ? Cette action est irréversible.
-                </p>
-                
-                <div className="flex space-x-3">
-                  <motion.button
-                    onClick={() => setShowResetModal(false)}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="flex-1 btn-secondary"
-                  >
-                    Annuler
-                  </motion.button>
-                  <motion.button
-                    onClick={resetAllData}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ease-out transform hover:scale-105"
-                  >
-                    Confirmer
-                  </motion.button>
-                </div>
+              {/* Contact Info */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Contact</h3>
+                <p className="text-gray-600">{selectedPlayer.email}</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => sendEmail(selectedPlayer.email)}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-200"
+                >
+                  Envoyer un email
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={closePlayerModal}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-200"
+                >
+                  Fermer
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 

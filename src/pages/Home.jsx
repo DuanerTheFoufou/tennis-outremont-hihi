@@ -1,9 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
   const [hoveredButton, setHoveredButton] = useState(null);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleButtonClick = (link) => {
+    if (link === '/players' && !currentUser) {
+      navigate('/login');
+    } else {
+      navigate(link);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -119,11 +130,11 @@ const Home = () => {
     },
     {
       id: 'browse',
-      title: 'Voir les Joueurs',
-      description: 'Découvrez les joueurs disponibles',
-      icon: '👥',
-      color: 'from-blue-500 to-indigo-600',
-      hoverColor: 'from-blue-600 to-indigo-700',
+      title: currentUser ? 'Voir les Joueurs' : 'Se connecter pour voir les joueurs',
+      description: currentUser ? 'Découvrez les joueurs disponibles' : 'Connectez-vous pour accéder à la communauté',
+      icon: currentUser ? '👥' : '🔒',
+      color: currentUser ? 'from-blue-500 to-indigo-600' : 'from-gray-500 to-gray-600',
+      hoverColor: currentUser ? 'from-blue-600 to-indigo-700' : 'from-gray-600 to-gray-700',
       link: '/players',
       delay: 0.4
     }
@@ -189,6 +200,29 @@ const Home = () => {
               Connectez-vous avec des joueurs passionnés et réservez vos créneaux sur nos terrains municipaux.
             </motion.p>
 
+            {/* Welcome Message for logged in users */}
+            {currentUser && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  delay: 0.8, 
+                  duration: 0.6, 
+                  ease: [0.25, 0.46, 0.45, 0.94] 
+                }}
+                className="mt-6 inline-flex items-center space-x-3 bg-gradient-to-r from-green-50 to-blue-50 text-gray-700 px-6 py-3 rounded-full border border-green-200 shadow-lg"
+              >
+                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">
+                    {(currentUser.displayName || currentUser.email || 'U').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-lg font-medium">
+                  Bienvenue, {currentUser.displayName || 'Joueur'} !
+                </span>
+              </motion.div>
+            )}
+
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -225,6 +259,7 @@ const Home = () => {
                           }}
                           onHoverStart={() => setHoveredButton(button.id)}
                           onHoverEnd={() => setHoveredButton(null)}
+                          onClick={() => handleButtonClick(button.link)}
                           className={`
                             relative overflow-hidden bg-gradient-to-br ${button.color} 
                             hover:bg-gradient-to-br ${button.hoverColor}

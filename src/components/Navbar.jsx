@@ -1,31 +1,15 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
-  const location = useLocation();
+  const { currentUser, logout } = useAuth();
 
-  const navItems = [
-    { path: '/', label: 'Accueil' },
-    { path: '/submit', label: 'Proposer un Match' },
-    { path: '/players', label: 'Joueurs' }
-  ];
-
-  const buttonVariants = {
-    hover: {
-      scale: 1.08,
-      y: -3,
-      boxShadow: "0 12px 30px rgba(0, 0, 0, 0.15)",
-      transition: {
-        duration: 0.15,
-        ease: [0.25, 0.46, 0.45, 0.94]
-      }
-    },
-    tap: {
-      scale: 0.92,
-      transition: {
-        duration: 0.1,
-        ease: [0.25, 0.46, 0.45, 0.94]
-      }
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
     }
   };
 
@@ -34,87 +18,125 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200 sticky top-0 z-50"
+      className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/50 sticky top-0 z-50"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="container mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
           {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="flex items-center"
-          >
-            <Link to="/" className="flex items-center space-x-3 group">
-              <motion.div 
-                className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-200 ease-out"
-                whileHover={{ rotate: 5 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-              >
-                <span className="text-white text-xl font-bold">🎾</span>
-              </motion.div>
-              <div className="hidden sm:block">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                  Tennis Outremont
-                </h1>
-              </div>
-            </Link>
-          </motion.div>
+          <Link to="/" className="flex items-center space-x-3 group">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg"
+            >
+              <span className="text-white text-lg">🎾</span>
+            </motion.div>
+            <div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                Tennis Outremont
+              </h1>
+              <p className="text-xs text-gray-500">Trouvez votre partenaire</p>
+            </div>
+          </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <motion.div
-                  key={item.path}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  className="relative"
-                >
-                  <Link
-                    to={item.path}
-                    className={`
-                      px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ease-out
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-emerald-500 to-blue-600 text-white shadow-lg' 
-                        : 'text-gray-700 hover:text-emerald-600 hover:bg-emerald-50'
-                      }
-                    `}
-                  >
-                    {item.label}
-                  </Link>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl -z-10"
-                      initial={false}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 500, 
-                        damping: 30,
-                        ease: [0.25, 0.46, 0.45, 0.94]
-                      }}
-                    />
-                  )}
-                </motion.div>
-              );
-            })}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link
+              to="/"
+              className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
+            >
+              Accueil
+            </Link>
+            <Link
+              to="/submit"
+              className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
+            >
+              Proposer un Match
+            </Link>
+            {currentUser ? (
+              <Link
+                to="/players"
+                className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
+              >
+                Voir les Joueurs
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
+              >
+                Se connecter
+              </Link>
+            )}
           </div>
 
-          {/* Mobile menu button */}
-          <motion.div
-            variants={buttonVariants}
-            whileHover="hover"
-            whileTap="tap"
-            className="md:hidden"
-          >
-            <button className="p-2 rounded-xl text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200 ease-out">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </motion.div>
+          {/* User Menu / Auth Buttons */}
+          <div className="flex items-center space-x-4">
+            {currentUser ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center space-x-3"
+              >
+                {/* User Avatar */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-blue-50 px-4 py-2 rounded-xl border border-green-200"
+                >
+                  {currentUser.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt={currentUser.displayName || 'Utilisateur'}
+                      className="w-8 h-8 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">
+                        {(currentUser.displayName || currentUser.email || 'U').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                    {currentUser.displayName || 'Utilisateur'}
+                  </span>
+                </motion.div>
+
+                {/* Logout Button */}
+                <motion.button
+                  onClick={handleLogout}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  Déconnexion
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center space-x-3"
+              >
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-green-600 font-medium transition-colors duration-200"
+                >
+                  Connexion
+                </Link>
+                <motion.div
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link
+                    to="/login"
+                    className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-6 py-2 rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    S'inscrire
+                  </Link>
+                </motion.div>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
     </motion.nav>
