@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Submit from './pages/Submit';
@@ -10,13 +10,11 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/submit" element={<Submit />} />
-            <Route path="/players" element={<Players />} />
-          </Routes>
-        </AnimatePresence>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/submit" element={<Submit />} />
+          <Route path="/players" element={<Players />} />
+        </Routes>
       </div>
     </Router>
   );
