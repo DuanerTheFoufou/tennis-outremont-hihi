@@ -35,6 +35,14 @@ const Submit = () => {
   };
 
   const handleTimeToggle = (timeKey) => {
+    if (timeKey === 'clear-all') {
+      setFormData(prev => ({
+        ...prev,
+        availability: []
+      }));
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       availability: prev.availability.includes(timeKey)
