@@ -44,7 +44,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
     return `${selectedTimes.length} créneau${selectedTimes.length > 1 ? 'x' : ''} sur ${dayCount} jour${dayCount > 1 ? 's' : ''}`;
   };
 
-  const selectAll = () => {
+  const selectAll = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const allSlots = [];
     days.forEach(day => {
       timeSlots.forEach(time => {
@@ -59,7 +61,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
     });
   };
 
-  const selectWeekends = () => {
+  const selectWeekends = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const weekendSlots = [];
     ['saturday', 'sunday'].forEach(day => {
       timeSlots.forEach(time => {
@@ -73,7 +77,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
     });
   };
 
-  const selectWeekdays = () => {
+  const selectWeekdays = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const weekdaySlots = [];
     ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
       timeSlots.forEach(time => {
@@ -85,6 +91,12 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
         onTimeToggle(slot);
       }
     });
+  };
+
+  const clearAll = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onTimeToggle('clear-all');
   };
 
   return (
@@ -107,6 +119,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
       >
         <div className="flex flex-wrap justify-center gap-3">
           <motion.button
+            type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={selectAll}
@@ -115,6 +128,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             Tout Sélectionner
           </motion.button>
           <motion.button
+            type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={selectWeekends}
@@ -123,6 +137,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             Weekends
           </motion.button>
           <motion.button
+            type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={selectWeekdays}
@@ -131,9 +146,10 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             Semaine
           </motion.button>
           <motion.button
+            type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => onTimeToggle('clear-all')}
+            onClick={clearAll}
             className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-out"
           >
             Effacer Tout
@@ -190,6 +206,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
               return (
                 <motion.button
                   key={`${day.key}-${timeSlot.key}`}
+                  type="button"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ 
                     opacity: 1, 
@@ -221,7 +238,6 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
                     ${isSelected ? 'shadow-lg ring-2 ring-green-200' : 'shadow-sm hover:shadow-md'}
                     focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
                   `}
-                  type="button"
                 >
                   <AnimatePresence>
                     {isSelected && (

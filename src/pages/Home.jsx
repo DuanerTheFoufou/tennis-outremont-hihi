@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 const Home = () => {
+  const [hoveredButton, setHoveredButton] = useState(null);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -103,6 +106,29 @@ const Home = () => {
     }
   ];
 
+  const buttons = [
+    {
+      id: 'propose',
+      title: 'Proposer un Match',
+      description: 'Créez une nouvelle proposition de match',
+      icon: '🎾',
+      color: 'from-emerald-500 to-teal-600',
+      hoverColor: 'from-emerald-600 to-teal-700',
+      link: '/submit',
+      delay: 0.2
+    },
+    {
+      id: 'browse',
+      title: 'Voir les Joueurs',
+      description: 'Découvrez les joueurs disponibles',
+      icon: '👥',
+      color: 'from-blue-500 to-indigo-600',
+      hoverColor: 'from-blue-600 to-indigo-700',
+      link: '/players',
+      delay: 0.4
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -169,51 +195,154 @@ const Home = () => {
               transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
             >
-              <motion.div
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                className="group"
-              >
-                <Link
-                  to="/submit"
-                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold text-lg rounded-2xl shadow-lg transform transition-all duration-200 ease-out group-hover:shadow-2xl group-hover:from-emerald-600 group-hover:to-blue-700"
-                >
-                  <span className="mr-3">🎾</span>
-                  Proposer un Match
-                  <motion.span
-                    initial={{ x: 0 }}
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                    className="ml-3"
-                  >
-                    →
-                  </motion.span>
-                </Link>
-              </motion.div>
+              <div className="max-w-4xl mx-auto">
+                <div className="grid md:grid-cols-2 gap-8 mb-16">
+                  {buttons.map((button) => (
+                    <motion.div
+                      key={button.id}
+                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ 
+                        delay: button.delay, 
+                        duration: 0.8, 
+                        ease: [0.25, 0.46, 0.45, 0.94] 
+                      }}
+                      whileHover={{ 
+                        y: -8,
+                        transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
+                      }}
+                      className="relative group"
+                    >
+                      <Link to={button.link}>
+                        <motion.div
+                          whileHover={{ 
+                            scale: 1.02,
+                            transition: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }
+                          }}
+                          whileTap={{ 
+                            scale: 0.98,
+                            transition: { duration: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }
+                          }}
+                          onHoverStart={() => setHoveredButton(button.id)}
+                          onHoverEnd={() => setHoveredButton(null)}
+                          className={`
+                            relative overflow-hidden bg-gradient-to-br ${button.color} 
+                            hover:bg-gradient-to-br ${button.hoverColor}
+                            rounded-3xl p-8 text-white shadow-2xl 
+                            transform transition-all duration-500 ease-out
+                            border border-white/20 backdrop-blur-sm
+                            cursor-pointer
+                          `}
+                        >
+                          {/* Animated Background Pattern */}
+                          <motion.div
+                            animate={{
+                              rotate: hoveredButton === button.id ? 360 : 0,
+                              scale: hoveredButton === button.id ? 1.1 : 1,
+                            }}
+                            transition={{
+                              duration: hoveredButton === button.id ? 8 : 0,
+                              ease: "linear"
+                            }}
+                            className="absolute inset-0 opacity-10"
+                          >
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.3)_1px,transparent_1px)] bg-[length:20px_20px]" />
+                          </motion.div>
 
-              <motion.div
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                className="group"
-              >
-                <Link
-                  to="/players"
-                  className="inline-flex items-center px-8 py-4 bg-white text-gray-800 font-semibold text-lg rounded-2xl shadow-lg border-2 border-gray-200 transform transition-all duration-200 ease-out group-hover:shadow-2xl group-hover:border-emerald-300 group-hover:bg-emerald-50"
-                >
-                  <span className="mr-3">👥</span>
-                  Voir les Joueurs
-                  <motion.span
-                    initial={{ x: 0 }}
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                    className="ml-3"
-                  >
-                    →
-                  </motion.span>
-                </Link>
-              </motion.div>
+                          {/* Glow Effect */}
+                          <motion.div
+                            animate={{
+                              opacity: hoveredButton === button.id ? [0.3, 0.6, 0.3] : 0,
+                              scale: hoveredButton === button.id ? [1, 1.2, 1] : 1,
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: hoveredButton === button.id ? Infinity : 0,
+                              ease: "easeInOut"
+                            }}
+                            className="absolute inset-0 bg-white/20 rounded-3xl blur-xl"
+                          />
+
+                          {/* Content */}
+                          <div className="relative z-10">
+                            <motion.div
+                              animate={{
+                                scale: hoveredButton === button.id ? 1.1 : 1,
+                                rotate: hoveredButton === button.id ? [0, -5, 5, 0] : 0,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="text-6xl mb-6"
+                            >
+                              {button.icon}
+                            </motion.div>
+                            
+                            <motion.h2
+                              animate={{
+                                y: hoveredButton === button.id ? -2 : 0,
+                              }}
+                              transition={{
+                                duration: 0.2,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="text-3xl font-bold mb-4"
+                            >
+                              {button.title}
+                            </motion.h2>
+                            
+                            <motion.p
+                              animate={{
+                                opacity: hoveredButton === button.id ? 0.9 : 0.8,
+                              }}
+                              transition={{
+                                duration: 0.2,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="text-lg opacity-80 leading-relaxed"
+                            >
+                              {button.description}
+                            </motion.p>
+
+                            {/* Arrow Indicator */}
+                            <motion.div
+                              animate={{
+                                x: hoveredButton === button.id ? 8 : 0,
+                                opacity: hoveredButton === button.id ? 1 : 0.7,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="mt-6 text-2xl"
+                            >
+                              →
+                            </motion.div>
+                          </div>
+
+                          {/* Ripple Effect */}
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{
+                              scale: hoveredButton === button.id ? [0, 1] : 0,
+                              opacity: hoveredButton === button.id ? [1, 0] : 0,
+                            }}
+                            transition={{
+                              duration: 0.6,
+                              ease: "easeOut"
+                            }}
+                            className="absolute inset-0 bg-white/30 rounded-full"
+                            style={{
+                              transformOrigin: "center"
+                            }}
+                          />
+                        </motion.div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           </motion.div>
 
