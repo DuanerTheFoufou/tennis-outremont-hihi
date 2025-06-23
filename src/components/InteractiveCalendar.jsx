@@ -5,19 +5,19 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
   const [hoveredTime, setHoveredTime] = useState(null);
 
   const days = [
-    { key: 'monday', label: 'Lundi', short: 'Lun', emoji: '🌅' },
-    { key: 'tuesday', label: 'Mardi', short: 'Mar', emoji: '🌤️' },
-    { key: 'wednesday', label: 'Mercredi', short: 'Mer', emoji: '☀️' },
-    { key: 'thursday', label: 'Jeudi', short: 'Jeu', emoji: '🌤️' },
-    { key: 'friday', label: 'Vendredi', short: 'Ven', emoji: '🌅' },
-    { key: 'saturday', label: 'Samedi', short: 'Sam', emoji: '🎾' },
-    { key: 'sunday', label: 'Dimanche', short: 'Dim', emoji: '🏆' }
+    { key: 'monday', label: 'Lundi', short: 'Lun' },
+    { key: 'tuesday', label: 'Mardi', short: 'Mar' },
+    { key: 'wednesday', label: 'Mercredi', short: 'Mer' },
+    { key: 'thursday', label: 'Jeudi', short: 'Jeu' },
+    { key: 'friday', label: 'Vendredi', short: 'Ven' },
+    { key: 'saturday', label: 'Samedi', short: 'Sam' },
+    { key: 'sunday', label: 'Dimanche', short: 'Dim' }
   ];
 
   const timeSlots = [
-    { key: 'morning', label: 'Matin', time: '8h-12h', icon: '🌅', description: 'Tôt le matin' },
-    { key: 'afternoon', label: 'Après-midi', time: '12h-17h', icon: '☀️', description: 'Après le travail' },
-    { key: 'evening', label: 'Soirée', time: '17h-22h', icon: '🌆', description: 'En soirée' }
+    { key: 'morning', label: 'Matin', time: '8h-12h' },
+    { key: 'afternoon', label: 'Après-midi', time: '12h-17h' },
+    { key: 'evening', label: 'Soirée', time: '17h-22h' }
   ];
 
   const handleTimeClick = (e, day, time) => {
@@ -40,7 +40,6 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
     if (selectedTimes.length === 0) return "Aucun créneau sélectionné";
     
     const dayCount = new Set(selectedTimes.map(t => t.split('-')[0])).size;
-    const timeCount = new Set(selectedTimes.map(t => t.split('-')[1])).size;
     
     return `${selectedTimes.length} créneau${selectedTimes.length > 1 ? 'x' : ''} sur ${dayCount} jour${dayCount > 1 ? 's' : ''}`;
   };
@@ -49,50 +48,50 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
     <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-3">
-          📅 Votre Disponibilité Hebdomadaire
+          Votre Disponibilité Hebdomadaire
         </h3>
         <p className="text-gray-600 text-lg">
-          Sélectionnez tous vos créneaux disponibles pour la semaine
+          Sélectionnez vos créneaux disponibles
         </p>
       </div>
 
-      {/* Calendar Grid - 7x3 */}
-      <div className="grid grid-cols-7 gap-4">
-        {/* Header Row - Days */}
-        {days.map((day, dayIndex) => (
+      {/* Calendar Grid - 3x7 (3 time slots × 7 days) */}
+      <div className="grid grid-cols-4 gap-4">
+        {/* Empty corner */}
+        <div className="h-16"></div>
+        
+        {/* Header Row - Time Slots */}
+        {timeSlots.map((timeSlot, timeIndex) => (
           <motion.div
-            key={day.key}
+            key={timeSlot.key}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + dayIndex * 0.05, duration: 0.6, ease: "easeOut" }}
-            className="h-16 flex flex-col items-center justify-center"
+            transition={{ delay: 0.1 + timeIndex * 0.1, duration: 0.6, ease: "easeOut" }}
+            className="h-16 flex flex-col items-center justify-center text-center"
           >
-            <div className="text-center">
-              <div className="text-lg mb-1">{day.emoji}</div>
-              <div className="text-sm font-semibold text-gray-900">{day.short}</div>
-              <div className="text-xs text-gray-500">{day.label}</div>
-            </div>
+            <div className="text-sm font-semibold text-gray-900">{timeSlot.label}</div>
+            <div className="text-xs text-gray-500">{timeSlot.time}</div>
           </motion.div>
         ))}
 
-        {/* Calendar Cells - 3 rows × 7 columns */}
-        {timeSlots.map((timeSlot, timeIndex) => (
-          <div key={timeSlot.key} className="contents">
-            {/* Time Slot Label */}
+        {/* Calendar Rows - Days */}
+        {days.map((day, dayIndex) => (
+          <div key={day.key} className="contents">
+            {/* Day Label */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 + timeIndex * 0.1, duration: 0.6, ease: "easeOut" }}
-              className="h-20 flex flex-col items-center justify-center text-center"
+              transition={{ delay: 0.2 + dayIndex * 0.05, duration: 0.6, ease: "easeOut" }}
+              className="h-20 flex items-center justify-center"
             >
-              <div className="text-xl mb-1">{timeSlot.icon}</div>
-              <div className="text-sm font-medium text-gray-700">{timeSlot.label}</div>
-              <div className="text-xs text-gray-500">{timeSlot.time}</div>
-              <div className="text-xs text-gray-400 mt-1">{timeSlot.description}</div>
+              <div className="text-center">
+                <div className="text-sm font-semibold text-gray-900">{day.short}</div>
+                <div className="text-xs text-gray-500">{day.label}</div>
+              </div>
             </motion.div>
 
-            {/* Day cells for this time slot */}
-            {days.map((day, dayIndex) => {
+            {/* Time slot cells for this day */}
+            {timeSlots.map((timeSlot, timeIndex) => {
               const isSelected = isTimeSelected(day.key, timeSlot.key);
               const isHovered = hoveredTime === `${day.key}-${timeSlot.key}`;
               
@@ -117,7 +116,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
                     transition: { duration: 0.1 }
                   }}
                   transition={{ 
-                    delay: 0.3 + (timeIndex * 7 + dayIndex) * 0.02,
+                    delay: 0.3 + (dayIndex * 3 + timeIndex) * 0.02,
                     duration: 0.4,
                     ease: "easeOut"
                   }}
@@ -216,7 +215,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
               onClick={() => onTimeToggle('clear-all')}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-all duration-300 ease-out"
             >
-              🗑️ Effacer tout
+              Effacer tout
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
@@ -237,7 +236,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
               }}
               className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-all duration-300 ease-out"
             >
-              🎾 Weekends
+              Weekends
             </motion.button>
           </div>
         </motion.div>

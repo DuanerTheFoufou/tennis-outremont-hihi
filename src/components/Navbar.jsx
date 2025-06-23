@@ -6,67 +6,105 @@ const Navbar = () => {
 
   const navItems = [
     { path: '/', label: 'Accueil' },
-    { path: '/submit', label: 'Rejoindre' },
+    { path: '/submit', label: 'Proposer un Match' },
     { path: '/players', label: 'Joueurs' }
   ];
 
+  const buttonVariants = {
+    hover: {
+      scale: 1.05,
+      y: -2,
+      boxShadow: "0 8px 25px rgba(0, 0, 0, 0.15)",
+      transition: {
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    },
+    tap: {
+      scale: 0.95,
+      transition: {
+        duration: 0.1
+      }
+    }
+  };
+
   return (
     <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200 sticky top-0 z-50"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center space-x-3">
-            <motion.div
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg"
-            >
-              <span className="text-white font-bold text-xl">T</span>
-            </motion.div>
-            <div>
-              <span className="text-xl font-bold text-gray-900">Tennis Outremont</span>
-              <div className="text-xs text-gray-500 -mt-1">Communauté Locale</div>
-            </div>
-          </Link>
+          {/* Logo */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="flex items-center"
+          >
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 ease-out">
+                <span className="text-white text-xl font-bold">🎾</span>
+              </div>
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                  Tennis Outremont
+                </h1>
+              </div>
+            </Link>
+          </motion.div>
 
-          <div className="hidden md:flex space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  location.pathname === item.path
-                    ? 'text-green-600 bg-green-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                {item.label}
-                {location.pathname === item.path && (
-                  <motion.div
-                    layoutId="navbar-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600 rounded-full"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                )}
-              </Link>
-            ))}
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <motion.div
+                  key={item.path}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  className="relative"
+                >
+                  <Link
+                    to={item.path}
+                    className={`
+                      px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ease-out
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-emerald-500 to-blue-600 text-white shadow-lg' 
+                        : 'text-gray-700 hover:text-emerald-600 hover:bg-emerald-50'
+                      }
+                    `}
+                  >
+                    {item.label}
+                  </Link>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl -z-10"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="text-gray-500 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <motion.div
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            className="md:hidden"
+          >
+            <button className="p-2 rounded-xl text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-300 ease-out">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
-            </motion.button>
-          </div>
+            </button>
+          </motion.div>
         </div>
       </div>
     </motion.nav>

@@ -1,153 +1,171 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
+const CourtSelector = ({ selectedCourt, onCourtSelect }) => {
   const courts = [
     {
       id: 'saint-viateur',
       name: 'Terrains Saint-Viateur',
-      location: 'Parc Saint-Viateur',
-      address: 'Avenue Laurier Ouest',
-      description: 'Terrains en excellent état avec vue sur le parc',
-      features: ['Éclairage', 'Parking', 'Douches'],
-      image: '🏟️',
-      color: 'from-blue-500 to-blue-600'
+      shortName: 'Saint-Viateur',
+      location: 'Avenue Saint-Viateur',
+      description: '4 terrains extérieurs avec éclairage',
+      features: ['Éclairage', 'Parking', 'Transport en commun'],
+      color: 'from-emerald-400 to-green-500',
+      icon: '🏟️'
     },
     {
       id: 'fx-garneau',
-      name: 'Terrains FX-Garneau',
-      location: 'Parc FX-Garneau',
-      address: 'Avenue Bernard',
-      description: 'Terrains modernes avec surface professionnelle',
-      features: ['Surface Pro', 'Réservation', 'Café'],
-      image: '🎾',
-      color: 'from-green-500 to-green-600'
+      name: 'FX-Garneau',
+      shortName: 'FX-Garneau',
+      location: 'Avenue FX-Garneau',
+      description: '2 terrains extérieurs avec éclairage',
+      features: ['Éclairage', 'Parking', 'Transport en commun'],
+      color: 'from-blue-400 to-indigo-500',
+      icon: '🎾'
     },
     {
       id: 'joyce',
-      name: 'Terrains Joyce',
-      location: 'Parc Joyce',
-      address: 'Avenue Van Horne',
-      description: 'Terrains familiaux dans un cadre verdoyant',
-      features: ['Famille', 'Pique-nique', 'Jeux'],
-      image: '🌳',
-      color: 'from-purple-500 to-purple-600'
+      name: 'Joyce',
+      shortName: 'Joyce',
+      location: 'Avenue Joyce',
+      description: '2 terrains extérieurs avec éclairage',
+      features: ['Éclairage', 'Parking', 'Transport en commun'],
+      color: 'from-purple-400 to-pink-500',
+      icon: '🏆'
     }
   ];
 
-  const isCourtSelected = (courtId) => {
-    return selectedCourts.includes(courtId);
+  const buttonVariants = {
+    hover: {
+      scale: 1.05,
+      y: -5,
+      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+      transition: {
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    },
+    tap: {
+      scale: 0.95,
+      transition: {
+        duration: 0.1
+      }
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
-          🏟️ Terrains Préférés
+    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div className="text-center mb-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">
+          Choisissez Votre Terrain
         </h3>
-        <p className="text-gray-600">
-          Sélectionnez vos terrains de tennis favoris à Outremont
+        <p className="text-gray-600 text-lg">
+          Sélectionnez le terrain où vous souhaitez jouer
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-3 gap-6">
         {courts.map((court, index) => {
-          const isSelected = isCourtSelected(court.id);
+          const isSelected = selectedCourt === court.id;
           
           return (
             <motion.div
               key={court.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              whileHover={{ y: -5 }}
-              className="relative"
+              transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" }}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              onClick={() => onCourtSelect(court.id)}
+              className={`
+                relative cursor-pointer rounded-2xl p-6 border-2 transition-all duration-300 ease-out
+                ${isSelected 
+                  ? 'border-emerald-500 bg-emerald-50 shadow-lg ring-2 ring-emerald-200' 
+                  : 'border-gray-200 bg-white hover:border-emerald-300 hover:bg-emerald-50 shadow-md hover:shadow-lg'
+                }
+              `}
             >
-              <motion.button
-                onClick={() => onCourtToggle(court.id)}
-                className={`
-                  w-full p-6 rounded-2xl border-2 transition-all duration-300
-                  ${isSelected 
-                    ? 'border-green-500 bg-green-50 shadow-lg' 
-                    : 'border-gray-200 bg-white hover:border-gray-300 shadow-md hover:shadow-lg'
-                  }
-                `}
-                whileTap={{ scale: 0.98 }}
-              >
-                {/* Selection Indicator */}
-                <AnimatePresence>
-                  {isSelected && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: 180 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      className="absolute top-3 right-3 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"
+              {/* Selection Indicator */}
+              <AnimatePresence>
+                {isSelected && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: 180 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className="absolute top-4 right-4 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center"
+                  >
+                    <div className="text-white text-sm font-bold">✓</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Court Icon */}
+              <div className={`w-16 h-16 bg-gradient-to-r ${court.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                <span className="text-2xl">{court.icon}</span>
+              </div>
+
+              {/* Court Info */}
+              <div className="text-center">
+                <h4 className="text-lg font-bold text-gray-900 mb-2">{court.shortName}</h4>
+                <p className="text-sm text-gray-600 mb-3">{court.location}</p>
+                <p className="text-sm text-gray-500 mb-4">{court.description}</p>
+
+                {/* Features */}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {court.features.map((feature, featureIndex) => (
+                    <motion.span
+                      key={feature}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3 + featureIndex * 0.1, duration: 0.4, ease: "easeOut" }}
+                      className={`
+                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ease-out
+                        ${isSelected 
+                          ? 'bg-emerald-100 text-emerald-700' 
+                          : 'bg-gray-100 text-gray-600 group-hover:bg-emerald-100 group-hover:text-emerald-700'
+                        }
+                      `}
                     >
-                      <span className="text-white text-sm">✓</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Court Icon */}
-                <div className="text-center mb-4">
-                  <div className="text-4xl mb-2">{court.image}</div>
-                  <div className={`w-12 h-1 rounded-full mx-auto bg-gradient-to-r ${court.color}`}></div>
+                      {feature}
+                    </motion.span>
+                  ))}
                 </div>
+              </div>
 
-                {/* Court Info */}
-                <div className="text-center space-y-2">
-                  <h4 className="font-bold text-gray-900 text-lg">{court.name}</h4>
-                  <p className="text-sm text-gray-600">{court.location}</p>
-                  <p className="text-xs text-gray-500">{court.address}</p>
-                  
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-700 mb-3">{court.description}</p>
-                    
-                    {/* Features */}
-                    <div className="flex flex-wrap justify-center gap-1">
-                      {court.features.map((feature, featureIndex) => (
-                        <motion.span
-                          key={feature}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.2 + featureIndex * 0.1 }}
-                          className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                        >
-                          {feature}
-                        </motion.span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hover Effect */}
+              {/* Hover Effect */}
+              {!isSelected && (
                 <motion.div
-                  className="absolute inset-0 rounded-2xl bg-gradient-to-r opacity-0 hover:opacity-5 transition-opacity duration-300"
-                  style={{
-                    background: isSelected 
-                      ? 'linear-gradient(135deg, #16a34a, #15803d)' 
-                      : `linear-gradient(135deg, ${court.color.split(' ')[1]}, ${court.color.split(' ')[3]})`
-                  }}
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 0.1 }}
+                  className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-2xl -z-10"
                 />
-              </motion.button>
+              )}
             </motion.div>
           );
         })}
       </div>
 
       {/* Selection Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="text-center"
-      >
-        <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full">
-          <span className="text-sm font-medium">
-            {selectedCourts.length} terrain{selectedCourts.length > 1 ? 's' : ''} sélectionné{selectedCourts.length > 1 ? 's' : ''}
-          </span>
-        </div>
-      </motion.div>
+      {selectedCourt && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="mt-8 text-center"
+        >
+          <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-50 to-blue-50 text-gray-700 px-6 py-3 rounded-full border border-emerald-200 shadow-lg">
+            <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-bold">✓</span>
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-semibold">
+                Terrain sélectionné: {courts.find(c => c.id === selectedCourt)?.shortName}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
