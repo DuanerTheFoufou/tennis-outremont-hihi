@@ -56,10 +56,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
         </p>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-8 gap-4">
-        {/* Header Row */}
-        <div className="h-16"></div> {/* Empty corner */}
+      {/* Calendar Grid - 7x3 */}
+      <div className="grid grid-cols-7 gap-4">
+        {/* Header Row - Days */}
         {days.map((day, dayIndex) => (
           <motion.div
             key={day.key}
@@ -76,9 +75,10 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
           </motion.div>
         ))}
 
-        {/* Time Slots */}
+        {/* Calendar Cells - 3 rows × 7 columns */}
         {timeSlots.map((timeSlot, timeIndex) => (
-          <div key={timeSlot.key} className="space-y-4">
+          <div key={timeSlot.key} className="contents">
+            {/* Time Slot Label */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -90,12 +90,8 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
               <div className="text-xs text-gray-500">{timeSlot.time}</div>
               <div className="text-xs text-gray-400 mt-1">{timeSlot.description}</div>
             </motion.div>
-          </div>
-        ))}
 
-        {/* Calendar Cells */}
-        {timeSlots.map((timeSlot, timeIndex) => (
-          <div key={timeSlot.key} className="space-y-4">
+            {/* Day cells for this time slot */}
             {days.map((day, dayIndex) => {
               const isSelected = isTimeSelected(day.key, timeSlot.key);
               const isHovered = hoveredTime === `${day.key}-${timeSlot.key}`;
