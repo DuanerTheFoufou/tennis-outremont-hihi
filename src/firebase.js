@@ -2,14 +2,15 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Configuration Firebase - À remplacer par vos vraies clés
+// Configuration Firebase - Clés réelles
 const firebaseConfig = {
-  apiKey: "AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  apiKey: "AIzaSyD_nPXRF5O5-JnDoWe9fLb9hJxhuBz9CX8",
   authDomain: "tennis-outremont.firebaseapp.com",
   projectId: "tennis-outremont",
-  storageBucket: "tennis-outremont.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdefghijklmnop"
+  storageBucket: "tennis-outremont.firebasestorage.app",
+  messagingSenderId: "375231312386",
+  appId: "1:375231312386:web:210ab07575a518dc83ad1b",
+  measurementId: "G-J6J7G35K1N"
 };
 
 // Initialize Firebase
