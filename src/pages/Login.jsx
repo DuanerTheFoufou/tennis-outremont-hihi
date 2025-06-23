@@ -20,13 +20,18 @@ const Login = () => {
     setLoading(true);
 
     try {
+      console.log('Tentative de soumission du formulaire:', { isSignup, email, displayName });
+      
       if (isSignup) {
         await signup(email, password, displayName);
+        console.log('Inscription réussie');
       } else {
         await login(email, password);
+        console.log('Connexion réussie');
       }
       navigate('/');
     } catch (error) {
+      console.error('Erreur dans handleSubmit:', error);
       setError(getErrorMessage(error.code));
     } finally {
       setLoading(false);
@@ -38,9 +43,12 @@ const Login = () => {
     setLoading(true);
     
     try {
+      console.log('Tentative de connexion Google');
       await loginWithGoogle();
+      console.log('Connexion Google réussie');
       navigate('/');
     } catch (error) {
+      console.error('Erreur dans handleGoogleLogin:', error);
       setError(getErrorMessage(error.code));
     } finally {
       setLoading(false);
@@ -48,6 +56,8 @@ const Login = () => {
   };
 
   const getErrorMessage = (errorCode) => {
+    console.log('Code d\'erreur reçu:', errorCode);
+    
     switch (errorCode) {
       case 'auth/user-not-found':
         return 'Aucun compte trouvé avec cet email.';
@@ -61,7 +71,16 @@ const Login = () => {
         return 'Adresse email invalide.';
       case 'auth/popup-closed-by-user':
         return 'Connexion Google annulée.';
+      case 'auth/popup-blocked':
+        return 'La popup Google a été bloquée. Veuillez autoriser les popups.';
+      case 'auth/network-request-failed':
+        return 'Erreur de réseau. Vérifiez votre connexion internet.';
+      case 'auth/too-many-requests':
+        return 'Trop de tentatives. Veuillez réessayer plus tard.';
+      case 'auth/operation-not-allowed':
+        return 'Cette méthode d\'authentification n\'est pas activée.';
       default:
+        console.log('Code d\'erreur non reconnu:', errorCode);
         return 'Une erreur est survenue. Veuillez réessayer.';
     }
   };
@@ -142,7 +161,10 @@ const Login = () => {
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm"
             >
-              {error}
+              <div className="flex items-center">
+                <span className="text-red-500 mr-2">⚠️</span>
+                {error}
+              </div>
             </motion.div>
           )}
 
@@ -155,7 +177,7 @@ const Login = () => {
                 transition={{ delay: 0.5, duration: 0.6 }}
               >
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom complet
+                  Nom complet *
                 </label>
                 <input
                   type="text"
@@ -199,9 +221,15 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                 placeholder="••••••••"
               />
+              {isSignup && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Le mot de passe doit contenir au moins 6 caractères
+                </p>
+              )}
             </motion.div>
 
             <motion.button
