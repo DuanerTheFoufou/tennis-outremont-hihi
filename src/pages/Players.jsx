@@ -71,6 +71,16 @@ const Players = () => {
     { key: 'evening', label: 'Soirée' }
   ];
 
+  const days = [
+    { key: 'monday', label: 'Lun', short: 'L' },
+    { key: 'tuesday', label: 'Mar', short: 'M' },
+    { key: 'wednesday', label: 'Mer', short: 'M' },
+    { key: 'thursday', label: 'Jeu', short: 'J' },
+    { key: 'friday', label: 'Ven', short: 'V' },
+    { key: 'saturday', label: 'Sam', short: 'S' },
+    { key: 'sunday', label: 'Dim', short: 'D' }
+  ];
+
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
       ...prev,
@@ -106,30 +116,107 @@ const Players = () => {
     window.open(`mailto:${email}?subject=Partenaire de Tennis - Outremont`, '_blank');
   };
 
-  const formatAvailability = (availability) => {
-    const days = {
-      'monday': 'Lun', 'tuesday': 'Mar', 'wednesday': 'Mer',
-      'thursday': 'Jeu', 'friday': 'Ven', 'saturday': 'Sam', 'sunday': 'Dim'
-    };
-    const times = { 'morning': 'Matin', 'afternoon': 'Après-midi', 'evening': 'Soirée' };
+  const isTimeSelected = (availability, day, time) => {
+    const timeKey = `${day}-${time}`;
+    return availability.includes(timeKey);
+  };
 
-    const grouped = availability.reduce((acc, time) => {
-      const [day, timeSlot] = time.split('-');
-      if (!acc[day]) acc[day] = [];
-      acc[day].push(times[timeSlot]);
-      return acc;
-    }, {});
+  const AvailabilityCalendar = ({ availability, compact = false }) => {
+    if (!availability || availability.length === 0) {
+      return (
+        <div className="text-center py-4">
+          <p className="text-gray-500 text-sm">Aucune disponibilité</p>
+        </div>
+      );
+    }
 
-    return Object.entries(grouped).map(([day, timeList]) => 
-      `${days[day]}: ${timeList.join(', ')}`
-    ).join(' | ');
+    return (
+      <div className={`${compact ? 'scale-75 origin-top-left' : ''}`}>
+        {/* Mini Calendar Grid */}
+        <div className="grid grid-cols-8 gap-1">
+          {/* Empty corner */}
+          <div className="h-6"></div>
+          
+          {/* Day headers */}
+          {days.map((day) => (
+            <div key={day.key} className="h-6 flex items-center justify-center">
+              <span className="text-xs font-semibold text-gray-600">{day.short}</span>
+            </div>
+          ))}
+
+          {/* Time slots */}
+          {timeSlots.map((timeSlot) => (
+            <div key={timeSlot.key} className="contents">
+              {/* Time label */}
+              <div className="h-6 flex items-center justify-center">
+                <span className="text-xs text-gray-500">{timeSlot.label.charAt(0)}</span>
+              </div>
+
+              {/* Day cells */}
+              {days.map((day) => {
+                const selected = isTimeSelected(availability, day.key, timeSlot.key);
+                return (
+                  <motion.div
+                    key={`${day.key}-${timeSlot.key}`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ 
+                      delay: Math.random() * 0.3, 
+                      duration: 0.3, 
+                      ease: [0.25, 0.46, 0.45, 0.94] 
+                    }}
+                    className={`
+                      w-6 h-6 rounded-sm border transition-all duration-200 ease-out
+                      ${selected 
+                        ? 'bg-emerald-500 border-emerald-600 shadow-sm' 
+                        : 'bg-gray-100 border-gray-200'
+                      }
+                    `}
+                  >
+                    {selected && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 500, 
+                          damping: 30,
+                          ease: [0.25, 0.46, 0.45, 0.94]
+                        }}
+                        className="w-full h-full flex items-center justify-center"
+                      >
+                        <div className="text-white text-xs font-bold">✓</div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-center space-x-4 mt-3 text-xs">
+          <div className="flex items-center space-x-1">
+            <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded-sm"></div>
+            <span className="text-gray-500">Non disponible</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-3 h-3 bg-emerald-500 border border-emerald-600 rounded-sm flex items-center justify-center">
+              <span className="text-white text-xs">✓</span>
+            </div>
+            <span className="text-gray-500">Disponible</span>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="min-h-screen py-12 bg-gradient-to-br from-green-50 to-blue-50"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -138,7 +225,7 @@ const Players = () => {
           <motion.h1
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+            transition={{ delay: 0.2, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="text-4xl font-bold text-gray-900 mb-4"
           >
             🎾 Joueurs de Tennis à Outremont
@@ -146,7 +233,7 @@ const Players = () => {
           <motion.p
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+            transition={{ delay: 0.3, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="text-xl text-gray-600 mb-6"
           >
             Trouvez votre partenaire de tennis idéal
@@ -155,7 +242,7 @@ const Players = () => {
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+            transition={{ delay: 0.4, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="flex items-center justify-center space-x-4"
           >
             <div className="bg-white rounded-full px-6 py-3 shadow-lg border border-gray-100">
@@ -167,7 +254,8 @@ const Players = () => {
               onClick={() => setShowResetModal(true)}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-out shadow-lg hover:shadow-xl"
+              transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ease-out shadow-lg hover:shadow-xl"
             >
               🔄 Reset Données
             </motion.button>
@@ -178,7 +266,7 @@ const Players = () => {
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
+          transition={{ delay: 0.5, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -254,6 +342,7 @@ const Players = () => {
               onClick={clearFilters}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="btn-secondary"
             >
               🗑️ Effacer les Filtres
@@ -273,12 +362,12 @@ const Players = () => {
                 transition={{ 
                   delay: index * 0.1, 
                   duration: 0.5, 
-                  ease: "easeOut" 
+                  ease: [0.25, 0.46, 0.45, 0.94] 
                 }}
                 whileHover={{ 
                   scale: 1.02, 
                   y: -8,
-                  transition: { duration: 0.3, ease: "easeOut" }
+                  transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
                 }}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden cursor-pointer card-hover"
                 onClick={() => openPlayerModal(player)}
@@ -296,7 +385,7 @@ const Players = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {/* Level */}
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-medium text-gray-700">Niveau:</span>
@@ -324,13 +413,13 @@ const Players = () => {
                       </div>
                     )}
 
-                    {/* Availability */}
+                    {/* Availability Calendar */}
                     {player.availability && player.availability.length > 0 && (
                       <div>
-                        <span className="text-sm font-medium text-gray-700">Disponible:</span>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {formatAvailability(player.availability)}
-                        </p>
+                        <span className="text-sm font-medium text-gray-700 mb-2 block">Disponibilité:</span>
+                        <div className="bg-gray-50 rounded-xl p-4">
+                          <AvailabilityCalendar availability={player.availability} compact={true} />
+                        </div>
                       </div>
                     )}
 
@@ -343,7 +432,8 @@ const Players = () => {
                         }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-all duration-300 ease-out"
+                        transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ease-out"
                       >
                         📧 Contacter
                       </motion.button>
@@ -360,7 +450,7 @@ const Players = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="text-center py-12"
           >
             <div className="text-6xl mb-4">🎾</div>
@@ -388,8 +478,8 @@ const Players = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              transition={{ type: "spring", stiffness: 300, damping: 30, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
@@ -407,13 +497,14 @@ const Players = () => {
                     onClick={closePlayerModal}
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
                   >
                     ×
                   </motion.button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {selectedPlayer.phone && (
                     <div>
                       <span className="text-sm font-medium text-gray-700">📞 Téléphone:</span>
@@ -448,10 +539,10 @@ const Players = () => {
 
                   {selectedPlayer.availability && selectedPlayer.availability.length > 0 && (
                     <div>
-                      <span className="text-sm font-medium text-gray-700">📅 Disponibilité:</span>
-                      <p className="text-gray-900 mt-1">
-                        {formatAvailability(selectedPlayer.availability)}
-                      </p>
+                      <span className="text-sm font-medium text-gray-700 mb-3 block">📅 Disponibilité:</span>
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <AvailabilityCalendar availability={selectedPlayer.availability} />
+                      </div>
                     </div>
                   )}
 
@@ -467,6 +558,7 @@ const Players = () => {
                       onClick={() => sendEmail(selectedPlayer.email)}
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
+                      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                       className="flex-1 btn-primary"
                     >
                       📧 Envoyer un Email
@@ -493,7 +585,7 @@ const Players = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
               onClick={(e) => e.stopPropagation()}
             >
@@ -511,6 +603,7 @@ const Players = () => {
                     onClick={() => setShowResetModal(false)}
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="flex-1 btn-secondary"
                   >
                     Annuler
@@ -519,7 +612,8 @@ const Players = () => {
                     onClick={resetAllData}
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-out transform hover:scale-105"
+                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ease-out transform hover:scale-105"
                   >
                     Confirmer
                   </motion.button>
