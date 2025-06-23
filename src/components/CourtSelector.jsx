@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CourtSelector = ({ selectedCourt, onCourtSelect }) => {
+const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
   const courts = [
     {
       id: 'saint-viateur',
@@ -52,20 +52,24 @@ const CourtSelector = ({ selectedCourt, onCourtSelect }) => {
     }
   };
 
+  const isCourtSelected = (courtId) => {
+    return selectedCourts.includes(courtId);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-3">
-          Choisissez Votre Terrain
+          Choisissez Vos Terrains Préférés
         </h3>
         <p className="text-gray-600 text-lg">
-          Sélectionnez le terrain où vous souhaitez jouer
+          Sélectionnez les terrains où vous aimez jouer
         </p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
         {courts.map((court, index) => {
-          const isSelected = selectedCourt === court.id;
+          const isSelected = isCourtSelected(court.id);
           
           return (
             <motion.div
@@ -76,7 +80,7 @@ const CourtSelector = ({ selectedCourt, onCourtSelect }) => {
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
-              onClick={() => onCourtSelect(court.id)}
+              onClick={() => onCourtToggle(court.id)}
               className={`
                 relative cursor-pointer rounded-2xl p-6 border-2 transition-all duration-300 ease-out
                 ${isSelected 
@@ -147,7 +151,7 @@ const CourtSelector = ({ selectedCourt, onCourtSelect }) => {
       </div>
 
       {/* Selection Summary */}
-      {selectedCourt && (
+      {selectedCourts.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -156,11 +160,11 @@ const CourtSelector = ({ selectedCourt, onCourtSelect }) => {
         >
           <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-50 to-blue-50 text-gray-700 px-6 py-3 rounded-full border border-emerald-200 shadow-lg">
             <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">✓</span>
+              <span className="text-white text-sm font-bold">{selectedCourts.length}</span>
             </div>
             <div className="text-left">
               <div className="text-sm font-semibold">
-                Terrain sélectionné: {courts.find(c => c.id === selectedCourt)?.shortName}
+                {selectedCourts.length} terrain{selectedCourts.length > 1 ? 's' : ''} sélectionné{selectedCourts.length > 1 ? 's' : ''}
               </div>
             </div>
           </div>

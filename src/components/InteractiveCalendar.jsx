@@ -55,43 +55,41 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
         </p>
       </div>
 
-      {/* Calendar Grid - 3x7 (3 time slots × 7 days) */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* Calendar Grid - 7x3 (7 days × 3 time slots) */}
+      <div className="grid grid-cols-8 gap-4">
         {/* Empty corner */}
         <div className="h-16"></div>
         
-        {/* Header Row - Time Slots */}
-        {timeSlots.map((timeSlot, timeIndex) => (
+        {/* Header Row - Days */}
+        {days.map((day, dayIndex) => (
           <motion.div
-            key={timeSlot.key}
+            key={day.key}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + timeIndex * 0.1, duration: 0.6, ease: "easeOut" }}
+            transition={{ delay: 0.1 + dayIndex * 0.05, duration: 0.6, ease: "easeOut" }}
             className="h-16 flex flex-col items-center justify-center text-center"
           >
-            <div className="text-sm font-semibold text-gray-900">{timeSlot.label}</div>
-            <div className="text-xs text-gray-500">{timeSlot.time}</div>
+            <div className="text-sm font-semibold text-gray-900">{day.short}</div>
+            <div className="text-xs text-gray-500">{day.label}</div>
           </motion.div>
         ))}
 
-        {/* Calendar Rows - Days */}
-        {days.map((day, dayIndex) => (
-          <div key={day.key} className="contents">
-            {/* Day Label */}
+        {/* Calendar Rows - Time Slots */}
+        {timeSlots.map((timeSlot, timeIndex) => (
+          <div key={timeSlot.key} className="contents">
+            {/* Time Slot Label */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 + dayIndex * 0.05, duration: 0.6, ease: "easeOut" }}
-              className="h-20 flex items-center justify-center"
+              transition={{ delay: 0.2 + timeIndex * 0.1, duration: 0.6, ease: "easeOut" }}
+              className="h-20 flex flex-col items-center justify-center text-center"
             >
-              <div className="text-center">
-                <div className="text-sm font-semibold text-gray-900">{day.short}</div>
-                <div className="text-xs text-gray-500">{day.label}</div>
-              </div>
+              <div className="text-sm font-semibold text-gray-900">{timeSlot.label}</div>
+              <div className="text-xs text-gray-500">{timeSlot.time}</div>
             </motion.div>
 
-            {/* Time slot cells for this day */}
-            {timeSlots.map((timeSlot, timeIndex) => {
+            {/* Day cells for this time slot */}
+            {days.map((day, dayIndex) => {
               const isSelected = isTimeSelected(day.key, timeSlot.key);
               const isHovered = hoveredTime === `${day.key}-${timeSlot.key}`;
               
@@ -116,7 +114,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
                     transition: { duration: 0.1 }
                   }}
                   transition={{ 
-                    delay: 0.3 + (dayIndex * 3 + timeIndex) * 0.02,
+                    delay: 0.3 + (timeIndex * 7 + dayIndex) * 0.02,
                     duration: 0.4,
                     ease: "easeOut"
                   }}
