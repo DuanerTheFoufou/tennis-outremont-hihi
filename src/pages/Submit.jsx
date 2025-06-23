@@ -113,11 +113,30 @@ const Submit = () => {
     { number: 4, title: 'Terrains Préférés', icon: '🏟️' }
   ];
 
+  const buttonVariants = {
+    hover: {
+      scale: 1.05,
+      y: -2,
+      boxShadow: "0 8px 25px rgba(0, 0, 0, 0.15)",
+      transition: {
+        duration: 0.15,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    },
+    tap: {
+      scale: 0.95,
+      transition: {
+        duration: 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="min-h-screen py-12 bg-gradient-to-br from-green-50 to-blue-50"
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -126,7 +145,7 @@ const Submit = () => {
           <motion.h1
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+            transition={{ delay: 0.2, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="text-4xl font-bold text-gray-900 mb-4"
           >
             Rejoignez la Communauté Tennis
@@ -134,7 +153,7 @@ const Submit = () => {
           <motion.p
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+            transition={{ delay: 0.3, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="text-xl text-gray-600"
           >
             Créez votre profil et trouvez des partenaires de tennis à Outremont
@@ -145,7 +164,7 @@ const Submit = () => {
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
+          transition={{ delay: 0.4, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-8"
         >
           <div className="flex items-center justify-center space-x-4">
@@ -159,6 +178,7 @@ const Submit = () => {
                   }`}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                 >
                   <span className="text-lg">{step.icon}</span>
                 </motion.div>
@@ -169,7 +189,7 @@ const Submit = () => {
                     }`}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: currentStep > step.number ? 1 : 0 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
+                    transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                   />
                 )}
               </div>
@@ -180,7 +200,7 @@ const Submit = () => {
               key={currentStep}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="text-lg font-semibold text-gray-900"
             >
               {steps[currentStep - 1].title}
@@ -192,7 +212,7 @@ const Submit = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
+          transition={{ delay: 0.5, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
         >
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -202,7 +222,7 @@ const Submit = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="space-y-6"
               >
                 <div className="text-center mb-6">
@@ -258,8 +278,9 @@ const Submit = () => {
                     type="button"
                     onClick={nextStep}
                     disabled={!formData.name || !formData.email}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:y-0"
                   >
                     Suivant →
@@ -274,7 +295,7 @@ const Submit = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="space-y-6"
               >
                 <div className="text-center mb-6">
@@ -288,8 +309,9 @@ const Submit = () => {
                       key={level.value}
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                       className={`
-                        relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ease-out
+                        relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ease-out
                         ${formData.level === level.value
                           ? 'border-green-500 bg-green-50 shadow-lg'
                           : 'border-gray-200 bg-white hover:border-gray-300 shadow-md hover:shadow-lg'
@@ -306,7 +328,7 @@ const Submit = () => {
                         className="sr-only"
                       />
                       <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ease-out ${
                           formData.level === level.value
                             ? 'border-green-500 bg-green-500'
                             : 'border-gray-300'
@@ -315,7 +337,7 @@ const Submit = () => {
                             <motion.div
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
-                              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 25, ease: [0.25, 0.46, 0.45, 0.94] }}
                               className="w-2 h-2 bg-white rounded-full"
                             />
                           )}
@@ -333,8 +355,9 @@ const Submit = () => {
                   <motion.button
                     type="button"
                     onClick={prevStep}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     className="btn-secondary"
                   >
                     ← Précédent
@@ -343,8 +366,9 @@ const Submit = () => {
                     type="button"
                     onClick={nextStep}
                     disabled={!formData.level}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:y-0"
                   >
                     Suivant →
@@ -359,7 +383,7 @@ const Submit = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="space-y-6"
               >
                 <InteractiveCalendar
@@ -371,8 +395,9 @@ const Submit = () => {
                   <motion.button
                     type="button"
                     onClick={prevStep}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     className="btn-secondary"
                   >
                     ← Précédent
@@ -380,8 +405,9 @@ const Submit = () => {
                   <motion.button
                     type="button"
                     onClick={nextStep}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     className="btn-primary"
                   >
                     Suivant →
@@ -396,7 +422,7 @@ const Submit = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="space-y-6"
               >
                 <CourtSelector
@@ -421,8 +447,9 @@ const Submit = () => {
                   <motion.button
                     type="button"
                     onClick={prevStep}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     className="btn-secondary"
                   >
                     ← Précédent
@@ -430,8 +457,9 @@ const Submit = () => {
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                     className="btn-primary text-lg px-8 py-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:y-0"
                   >
                     {isSubmitting ? (

@@ -7,7 +7,7 @@ const Home = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.15,
         delayChildren: 0.1
       }
     }
@@ -27,18 +27,19 @@ const Home = () => {
 
   const buttonVariants = {
     hover: {
-      scale: 1.05,
-      y: -5,
-      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+      scale: 1.08,
+      y: -8,
+      boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
       transition: {
-        duration: 0.2,
-        ease: "easeOut"
+        duration: 0.15,
+        ease: [0.25, 0.46, 0.45, 0.94]
       }
     },
     tap: {
-      scale: 0.95,
+      scale: 0.92,
       transition: {
-        duration: 0.1
+        duration: 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94]
       }
     }
   };
@@ -146,7 +147,7 @@ const Home = () => {
             <motion.h1
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: "easeOut" }}
+              transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight"
             >
               Tennis Outremont
@@ -155,7 +156,7 @@ const Home = () => {
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+              transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="text-xl lg:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed"
             >
               Trouvez votre partenaire de tennis idéal dans le quartier d'Outremont. 
@@ -165,7 +166,7 @@ const Home = () => {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
+              transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
             >
               <motion.div
@@ -176,7 +177,7 @@ const Home = () => {
               >
                 <Link
                   to="/submit"
-                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold text-lg rounded-2xl shadow-lg transform transition-all duration-300 ease-out group-hover:shadow-2xl group-hover:from-emerald-600 group-hover:to-blue-700"
+                  className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold text-lg rounded-2xl shadow-lg transform transition-all duration-200 ease-out group-hover:shadow-2xl group-hover:from-emerald-600 group-hover:to-blue-700"
                 >
                   <span className="mr-3">🎾</span>
                   Proposer un Match
@@ -199,7 +200,7 @@ const Home = () => {
               >
                 <Link
                   to="/players"
-                  className="inline-flex items-center px-8 py-4 bg-white text-gray-800 font-semibold text-lg rounded-2xl shadow-lg border-2 border-gray-200 transform transition-all duration-300 ease-out group-hover:shadow-2xl group-hover:border-emerald-300 group-hover:bg-emerald-50"
+                  className="inline-flex items-center px-8 py-4 bg-white text-gray-800 font-semibold text-lg rounded-2xl shadow-lg border-2 border-gray-200 transform transition-all duration-200 ease-out group-hover:shadow-2xl group-hover:border-emerald-300 group-hover:bg-emerald-50"
                 >
                   <span className="mr-3">👥</span>
                   Voir les Joueurs
@@ -222,13 +223,16 @@ const Home = () => {
             className="grid md:grid-cols-3 gap-8 mb-16"
           >
             <motion.div
-              whileHover={{ y: -10, scale: 1.02 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -12, scale: 1.03 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-200 ease-out"
             >
-              <div className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-200 ease-out"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+              >
                 <span className="text-2xl">🎾</span>
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Terrains Municipaux</h3>
               <p className="text-gray-600 leading-relaxed">
                 Accès aux terrains Saint-Viateur, FX-Garneau et Joyce. 
@@ -237,13 +241,16 @@ const Home = () => {
             </motion.div>
 
             <motion.div
-              whileHover={{ y: -10, scale: 1.02 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -12, scale: 1.03 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-200 ease-out"
             >
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-200 ease-out"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+              >
                 <span className="text-2xl">👥</span>
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Communauté Locale</h3>
               <p className="text-gray-600 leading-relaxed">
                 Connectez-vous avec des joueurs passionnés du quartier. 
@@ -252,13 +259,16 @@ const Home = () => {
             </motion.div>
 
             <motion.div
-              whileHover={{ y: -10, scale: 1.02 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -12, scale: 1.03 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-200 ease-out"
             >
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-200 ease-out"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+              >
                 <span className="text-2xl">⚡</span>
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Rapide et Simple</h3>
               <p className="text-gray-600 leading-relaxed">
                 Interface intuitive pour proposer et trouver des matches. 
@@ -278,39 +288,48 @@ const Home = () => {
             
             <div className="grid md:grid-cols-3 gap-8">
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                whileHover={{ scale: 1.08 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center group"
               >
-                <div className="w-20 h-20 bg-gradient-to-r from-emerald-400 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-r from-emerald-400 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform duration-200 ease-out"
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                >
                   <span className="text-2xl">🏟️</span>
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Terrains Saint-Viateur</h3>
                 <p className="text-gray-600 text-sm">4 terrains extérieurs</p>
                 <p className="text-gray-500 text-xs mt-1">Ouvert d'avril à octobre</p>
               </motion.div>
 
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                whileHover={{ scale: 1.08 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center group"
               >
-                <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform duration-200 ease-out"
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                >
                   <span className="text-2xl">🎾</span>
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">FX-Garneau</h3>
                 <p className="text-gray-600 text-sm">2 terrains extérieurs</p>
                 <p className="text-gray-500 text-xs mt-1">Ouvert d'avril à octobre</p>
               </motion.div>
 
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                whileHover={{ scale: 1.08 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center group"
               >
-                <div className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform duration-200 ease-out"
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                >
                   <span className="text-2xl">🏆</span>
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Joyce</h3>
                 <p className="text-gray-600 text-sm">2 terrains extérieurs</p>
                 <p className="text-gray-500 text-xs mt-1">Ouvert d'avril à octobre</p>
@@ -320,7 +339,7 @@ const Home = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
+              transition={{ duration: 0.8, delay: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="mt-8 text-center"
             >
               <p className="text-gray-600 text-lg">

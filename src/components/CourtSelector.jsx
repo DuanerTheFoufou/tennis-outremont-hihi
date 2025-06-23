@@ -36,18 +36,19 @@ const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
 
   const buttonVariants = {
     hover: {
-      scale: 1.05,
-      y: -5,
-      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+      scale: 1.08,
+      y: -8,
+      boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
       transition: {
-        duration: 0.2,
-        ease: "easeOut"
+        duration: 0.15,
+        ease: [0.25, 0.46, 0.45, 0.94]
       }
     },
     tap: {
-      scale: 0.95,
+      scale: 0.92,
       transition: {
-        duration: 0.1
+        duration: 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94]
       }
     }
   };
@@ -76,13 +77,17 @@ const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
               key={court.id}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" }}
+              transition={{ 
+                delay: index * 0.1, 
+                duration: 0.6, 
+                ease: [0.25, 0.46, 0.45, 0.94] 
+              }}
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
               onClick={() => onCourtToggle(court.id)}
               className={`
-                relative cursor-pointer rounded-2xl p-6 border-2 transition-all duration-300 ease-out
+                relative cursor-pointer rounded-2xl p-6 border-2 transition-all duration-200 ease-out
                 ${isSelected 
                   ? 'border-emerald-500 bg-emerald-50 shadow-lg ring-2 ring-emerald-200' 
                   : 'border-gray-200 bg-white hover:border-emerald-300 hover:bg-emerald-50 shadow-md hover:shadow-lg'
@@ -96,7 +101,12 @@ const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     exit={{ scale: 0, rotate: 180 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 500, 
+                      damping: 30,
+                      ease: [0.25, 0.46, 0.45, 0.94]
+                    }}
                     className="absolute top-4 right-4 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center"
                   >
                     <div className="text-white text-sm font-bold">✓</div>
@@ -105,9 +115,12 @@ const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
               </AnimatePresence>
 
               {/* Court Icon */}
-              <div className={`w-16 h-16 bg-gradient-to-r ${court.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+              <motion.div 
+                className={`w-16 h-16 bg-gradient-to-r ${court.color} rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform duration-200 ease-out`}
+                whileHover={{ scale: 1.1 }}
+              >
                 <span className="text-2xl">{court.icon}</span>
-              </div>
+              </motion.div>
 
               {/* Court Info */}
               <div className="text-center">
@@ -122,9 +135,13 @@ const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
                       key={feature}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.3 + featureIndex * 0.1, duration: 0.4, ease: "easeOut" }}
+                      transition={{ 
+                        delay: 0.3 + featureIndex * 0.1, 
+                        duration: 0.4, 
+                        ease: [0.25, 0.46, 0.45, 0.94] 
+                      }}
                       className={`
-                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ease-out
+                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ease-out
                         ${isSelected 
                           ? 'bg-emerald-100 text-emerald-700' 
                           : 'bg-gray-100 text-gray-600 group-hover:bg-emerald-100 group-hover:text-emerald-700'
@@ -142,6 +159,7 @@ const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
                 <motion.div
                   initial={{ opacity: 0 }}
                   whileHover={{ opacity: 0.1 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-2xl -z-10"
                 />
               )}
@@ -155,13 +173,19 @@ const CourtSelector = ({ selectedCourts, onCourtToggle }) => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mt-8 text-center"
         >
           <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-50 to-blue-50 text-gray-700 px-6 py-3 rounded-full border border-emerald-200 shadow-lg">
-            <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center">
+            <motion.div 
+              key={selectedCourts.length}
+              initial={{ scale: 0.8, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center"
+            >
               <span className="text-white text-sm font-bold">{selectedCourts.length}</span>
-            </div>
+            </motion.div>
             <div className="text-left">
               <div className="text-sm font-semibold">
                 {selectedCourts.length} terrain{selectedCourts.length > 1 ? 's' : ''} sélectionné{selectedCourts.length > 1 ? 's' : ''}
