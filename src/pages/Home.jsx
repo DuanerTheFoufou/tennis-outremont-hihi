@@ -1,472 +1,517 @@
-import { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
+  const [hoveredButton, setHoveredButton] = useState(null);
   const { currentUser } = useAuth();
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [hoveredSection, setHoveredSection] = useState(null);
-  const { scrollYProgress } = useScroll();
-  
-  const y = useTransform(scrollYProgress, [0, 1], [0, -300]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  const handleButtonClick = (link) => {
+    if (link === '/players' && !currentUser) {
+      navigate('/login');
+    } else {
+      navigate(link);
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    }
+  };
+
+  const buttonVariants = {
+    hover: {
+      scale: 1.08,
+      y: -8,
+      boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
+      transition: {
+        duration: 0.15,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    },
+    tap: {
+      scale: 0.92,
+      transition: {
+        duration: 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    }
+  };
+
+  const floatingVariants = {
+    animate: {
+      y: [-10, 10, -10],
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
 
   const features = [
     {
-      icon: '🎾',
-      title: 'Trouvez votre partenaire',
-      description: 'Connectez-vous avec des joueurs de votre niveau',
-      color: 'from-emerald-400 to-teal-500',
-      delay: 0.1
+      icon: "🎾",
+      title: "Trouvez des Partenaires",
+      description: "Connectez-vous avec des joueurs de votre niveau dans votre quartier"
     },
     {
-      icon: '🏟️',
-      title: 'Terrains officiels',
-      description: 'Saint-Viateur, FX-Garneau et Joyce',
-      color: 'from-blue-400 to-indigo-500',
-      delay: 0.2
+      icon: "📅",
+      title: "Planifiez Facilement",
+      description: "Organisez vos parties avec un calendrier interactif et intuitif"
     },
     {
-      icon: '📅',
-      title: 'Disponibilité flexible',
-      description: 'Planifiez selon vos horaires',
-      color: 'from-purple-400 to-pink-500',
-      delay: 0.3
-    },
-    {
-      icon: '👥',
-      title: 'Communauté locale',
-      description: 'Passionnés d\'Outremont',
-      color: 'from-orange-400 to-red-500',
-      delay: 0.4
+      icon: "🏟️",
+      title: "Terrains Locaux",
+      description: "Découvrez les meilleurs terrains de tennis d'Outremont"
     }
   ];
 
   const stats = [
-    { number: '50+', label: 'Joueurs actifs', icon: '👥' },
-    { number: '3', label: 'Terrains officiels', icon: '🏟️' },
-    { number: '24/7', label: 'Disponibilité', icon: '⏰' },
-    { number: '100%', label: 'Gratuit', icon: '💚' }
+    { number: "50+", label: "Joueurs Actifs" },
+    { number: "3", label: "Terrains Disponibles" },
+    { number: "24/7", label: "Disponibilité" }
+  ];
+
+  const courts = [
+    {
+      name: "Terrains Saint-Viateur",
+      location: "Parc Saint-Viateur",
+      description: "Terrains en excellent état avec vue sur le parc",
+      features: ["Éclairage", "Parking", "Douches"],
+      color: "from-blue-500 to-blue-600"
+    },
+    {
+      name: "Terrains FX-Garneau",
+      location: "Parc FX-Garneau",
+      description: "Terrains modernes avec surface professionnelle",
+      features: ["Surface Pro", "Réservation", "Café"],
+      color: "from-green-500 to-green-600"
+    },
+    {
+      name: "Terrains Joyce",
+      location: "Parc Joyce",
+      description: "Terrains familiaux dans un cadre verdoyant",
+      features: ["Famille", "Pique-nique", "Jeux"],
+      color: "from-purple-500 to-purple-600"
+    }
+  ];
+
+  const buttons = [
+    {
+      id: 'propose',
+      title: 'Proposer un Match',
+      description: 'Créez une nouvelle proposition de match',
+      icon: '🎾',
+      color: 'from-emerald-500 to-teal-600',
+      hoverColor: 'from-emerald-600 to-teal-700',
+      link: '/submit',
+      delay: 0.2
+    },
+    {
+      id: 'browse',
+      title: currentUser ? 'Voir les Joueurs' : 'Se connecter pour voir les joueurs',
+      description: currentUser ? 'Découvrez les joueurs disponibles' : 'Connectez-vous pour accéder à la communauté',
+      icon: currentUser ? '👥' : '🔒',
+      color: currentUser ? 'from-blue-500 to-indigo-600' : 'from-gray-500 to-gray-600',
+      hoverColor: currentUser ? 'from-blue-600 to-indigo-700' : 'from-gray-600 to-gray-700',
+      link: '/players',
+      delay: 0.4
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl"
+          variants={floatingVariants}
+          animate="animate"
+          className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-emerald-200 to-teal-200 rounded-full opacity-20 blur-xl"
         />
         <motion.div
-          animate={{
-            x: [0, -80, 0],
-            y: [0, 60, 0],
-            rotate: [360, 180, 0],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl"
+          variants={floatingVariants}
+          animate="animate"
+          transition={{ delay: 1 }}
+          className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-r from-blue-200 to-indigo-200 rounded-full opacity-20 blur-xl"
         />
         <motion.div
-          animate={{
-            x: [0, 60, 0],
-            y: [0, -30, 0],
-            rotate: [0, 90, 180],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute top-1/2 left-1/3 w-80 h-80 bg-gradient-to-r from-blue-500/15 to-cyan-500/15 rounded-full blur-3xl"
+          variants={floatingVariants}
+          animate="animate"
+          transition={{ delay: 2 }}
+          className="absolute bottom-20 left-1/4 w-24 h-24 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full opacity-20 blur-xl"
+        />
+        <motion.div
+          variants={floatingVariants}
+          animate="animate"
+          transition={{ delay: 0.5 }}
+          className="absolute bottom-40 right-1/3 w-36 h-36 bg-gradient-to-r from-cyan-200 to-blue-200 rounded-full opacity-20 blur-xl"
         />
       </div>
 
-      {/* Mouse Follower */}
-      <motion.div
-        className="fixed top-0 left-0 w-4 h-4 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full pointer-events-none z-50 mix-blend-difference"
-        animate={{
-          x: mousePosition.x - 8,
-          y: mousePosition.y - 8,
-        }}
-        transition={{ type: "spring", stiffness: 500, damping: 28 }}
-      />
-
       <div className="relative z-10">
-        {/* Hero Section - Asymmetrical Layout */}
-        <section className="pt-32 pb-20 px-6 relative">
-          <div className="max-w-7xl mx-auto">
-            {/* Main Content - Left Side */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="container mx-auto px-6 py-16 lg:py-24"
+        >
+          {/* Hero Section */}
+          <motion.div
+            variants={itemVariants}
+            className="text-center mb-16 lg:mb-20"
+          >
+            <motion.h1
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent leading-tight"
+            >
+              Tennis Outremont
+            </motion.h1>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="text-xl lg:text-2xl text-gray-700 mb-8 max-w-3xl mx-auto leading-relaxed"
+            >
+              Trouvez votre partenaire de tennis idéal dans le quartier d'Outremont. 
+              Connectez-vous avec des joueurs passionnés et réservez vos créneaux sur nos terrains municipaux.
+            </motion.p>
+
+            {/* Welcome Message for logged in users */}
+            {currentUser && (
               <motion.div
-                initial={{ opacity: 0, x: -100 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="relative"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  delay: 0.8, 
+                  duration: 0.6, 
+                  ease: [0.25, 0.46, 0.45, 0.94] 
+                }}
+                className="mt-6 inline-flex items-center space-x-3 bg-gradient-to-r from-green-50 to-blue-50 text-gray-700 px-6 py-3 rounded-full border border-green-200 shadow-lg"
               >
-                {/* Floating Elements */}
-                <motion.div
-                  animate={{ y: [0, -20, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-10 -left-10 w-20 h-20 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl opacity-20 blur-sm"
-                />
-                <motion.div
-                  animate={{ y: [0, 20, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -bottom-10 -right-10 w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 blur-sm"
-                />
-
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                  className="relative z-10"
-                >
-                  <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-8 leading-tight">
-                    <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                      Tennis
-                    </span>
-                    <br />
-                    <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                      Outremont
-                    </span>
-                  </h1>
-                  
-                  <p className="text-xl md:text-2xl text-gray-300 mb-12 leading-relaxed max-w-lg">
-                    Découvrez une nouvelle façon de jouer au tennis. 
-                    <span className="text-emerald-400 font-semibold"> Connectez-vous</span> avec des passionnés, 
-                    <span className="text-purple-400 font-semibold"> jouez</span> sur nos terrains officiels.
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row gap-6">
-                    {currentUser ? (
-                      <motion.div
-                        whileHover={{ scale: 1.05, y: -5 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="group"
-                      >
-                        <Link
-                          to="/submit"
-                          className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300"
-                        >
-                          <span className="mr-3">Créer mon profil</span>
-                          <motion.span
-                            animate={{ x: [0, 5, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          >
-                            →
-                          </motion.span>
-                        </Link>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        whileHover={{ scale: 1.05, y: -5 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="group"
-                      >
-                        <Link
-                          to="/login"
-                          className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300"
-                        >
-                          <span className="mr-3">Commencer</span>
-                          <motion.span
-                            animate={{ x: [0, 5, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          >
-                            →
-                          </motion.span>
-                        </Link>
-                      </motion.div>
-                    )}
-                    
-                    <motion.div
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Link
-                        to="/players"
-                        className="inline-flex items-center px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-2xl hover:bg-white/20 transition-all duration-300"
-                      >
-                        <span className="mr-3">Voir les joueurs</span>
-                        <span>👥</span>
-                      </Link>
-                    </motion.div>
-                  </div>
-                </motion.div>
+                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">
+                    {(currentUser.displayName || currentUser.email || 'U').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-lg font-medium">
+                  Bienvenue, {currentUser.displayName || 'Joueur'} !
+                </span>
               </motion.div>
+            )}
 
-              {/* Right Side - Floating Cards */}
-              <motion.div
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="relative"
-              >
-                <div className="grid grid-cols-2 gap-6">
-                  {features.map((feature, index) => (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+            >
+              <div className="max-w-4xl mx-auto">
+                <div className="grid md:grid-cols-2 gap-8 mb-16">
+                  {buttons.map((button) => (
                     <motion.div
-                      key={feature.title}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 + feature.delay, duration: 0.8 }}
-                      whileHover={{ 
-                        scale: 1.05, 
-                        rotateY: 5,
-                        transition: { duration: 0.3 }
+                      key={button.id}
+                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ 
+                        delay: button.delay, 
+                        duration: 0.8, 
+                        ease: [0.25, 0.46, 0.45, 0.94] 
                       }}
-                      onHoverStart={() => setHoveredSection(feature.title)}
-                      onHoverEnd={() => setHoveredSection(null)}
-                      className={`relative group cursor-pointer ${
-                        index % 2 === 0 ? 'mt-8' : ''
-                      }`}
+                      whileHover={{ 
+                        y: -8,
+                        transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
+                      }}
+                      className="relative group"
                     >
-                      <motion.div
-                        animate={{
-                          rotate: hoveredSection === feature.title ? 360 : 0,
-                          scale: hoveredSection === feature.title ? 1.1 : 1,
-                        }}
-                        transition={{ duration: 0.6 }}
-                        className={`w-full h-48 bg-gradient-to-br ${feature.color} rounded-3xl p-6 shadow-2xl border border-white/20 backdrop-blur-sm`}
-                      >
-                        <div className="text-4xl mb-4">{feature.icon}</div>
-                        <h3 className="text-lg font-bold text-white mb-2">
-                          {feature.title}
-                        </h3>
-                        <p className="text-white/80 text-sm leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </motion.div>
-                      
-                      {/* Glow Effect */}
-                      <motion.div
-                        animate={{
-                          opacity: hoveredSection === feature.title ? 0.6 : 0,
-                          scale: hoveredSection === feature.title ? 1.2 : 1,
-                        }}
-                        transition={{ duration: 0.3 }}
-                        className={`absolute inset-0 bg-gradient-to-br ${feature.color} rounded-3xl blur-xl -z-10`}
-                      />
+                      <Link to={button.link}>
+                        <motion.div
+                          whileHover={{ 
+                            scale: 1.02,
+                            transition: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }
+                          }}
+                          whileTap={{ 
+                            scale: 0.98,
+                            transition: { duration: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }
+                          }}
+                          onHoverStart={() => setHoveredButton(button.id)}
+                          onHoverEnd={() => setHoveredButton(null)}
+                          onClick={() => handleButtonClick(button.link)}
+                          className={`
+                            relative overflow-hidden bg-gradient-to-br ${button.color} 
+                            hover:bg-gradient-to-br ${button.hoverColor}
+                            rounded-3xl p-8 text-white shadow-2xl 
+                            transform transition-all duration-500 ease-out
+                            border border-white/20 backdrop-blur-sm
+                            cursor-pointer
+                          `}
+                        >
+                          {/* Animated Background Pattern */}
+                          <motion.div
+                            animate={{
+                              rotate: hoveredButton === button.id ? 360 : 0,
+                              scale: hoveredButton === button.id ? 1.1 : 1,
+                            }}
+                            transition={{
+                              duration: hoveredButton === button.id ? 8 : 0,
+                              ease: "linear"
+                            }}
+                            className="absolute inset-0 opacity-10"
+                          >
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.3)_1px,transparent_1px)] bg-[length:20px_20px]" />
+                          </motion.div>
+
+                          {/* Glow Effect */}
+                          <motion.div
+                            animate={{
+                              opacity: hoveredButton === button.id ? [0.3, 0.6, 0.3] : 0,
+                              scale: hoveredButton === button.id ? [1, 1.2, 1] : 1,
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: hoveredButton === button.id ? Infinity : 0,
+                              ease: "easeInOut"
+                            }}
+                            className="absolute inset-0 bg-white/20 rounded-3xl blur-xl"
+                          />
+
+                          {/* Content */}
+                          <div className="relative z-10">
+                            <motion.div
+                              animate={{
+                                scale: hoveredButton === button.id ? 1.1 : 1,
+                                rotate: hoveredButton === button.id ? [0, -5, 5, 0] : 0,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="text-6xl mb-6"
+                            >
+                              {button.icon}
+                            </motion.div>
+                            
+                            <motion.h2
+                              animate={{
+                                y: hoveredButton === button.id ? -2 : 0,
+                              }}
+                              transition={{
+                                duration: 0.2,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="text-3xl font-bold mb-4"
+                            >
+                              {button.title}
+                            </motion.h2>
+                            
+                            <motion.p
+                              animate={{
+                                opacity: hoveredButton === button.id ? 0.9 : 0.8,
+                              }}
+                              transition={{
+                                duration: 0.2,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="text-lg opacity-80 leading-relaxed"
+                            >
+                              {button.description}
+                            </motion.p>
+
+                            {/* Arrow Indicator */}
+                            <motion.div
+                              animate={{
+                                x: hoveredButton === button.id ? 8 : 0,
+                                opacity: hoveredButton === button.id ? 1 : 0.7,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              className="mt-6 text-2xl"
+                            >
+                              →
+                            </motion.div>
+                          </div>
+
+                          {/* Ripple Effect */}
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{
+                              scale: hoveredButton === button.id ? [0, 1] : 0,
+                              opacity: hoveredButton === button.id ? [1, 0] : 0,
+                            }}
+                            transition={{
+                              duration: 0.6,
+                              ease: "easeOut"
+                            }}
+                            className="absolute inset-0 bg-white/30 rounded-full"
+                            style={{
+                              transformOrigin: "center"
+                            }}
+                          />
+                        </motion.div>
+                      </Link>
                     </motion.div>
                   ))}
                 </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
+              </div>
+            </motion.div>
+          </motion.div>
 
-        {/* Stats Section - Morphing Cards */}
-        <section className="py-20 px-6 relative">
+          {/* Features Section */}
           <motion.div
-            style={{ y }}
-            className="max-w-6xl mx-auto"
+            variants={itemVariants}
+            className="grid md:grid-cols-3 gap-8 mb-16"
           >
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-center mb-16"
+              whileHover={{ y: -12, scale: 1.03 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-200 ease-out"
             >
-              <h2 className="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Notre communauté en chiffres
-              </h2>
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-200 ease-out"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+              >
+                <span className="text-2xl">🎾</span>
+              </motion.div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Terrains Municipaux</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Accès aux terrains Saint-Viateur, FX-Garneau et Joyce. 
+                Réservation facile et sécurisée.
+              </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1, duration: 0.6 }}
-                  whileHover={{ 
-                    scale: 1.1,
-                    rotateY: 10,
-                    transition: { duration: 0.3 }
-                  }}
-                  className="group"
-                >
-                  <motion.div
-                    whileHover={{ 
-                      background: "linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1))",
-                      transition: { duration: 0.3 }
-                    }}
-                    className="relative p-8 bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
-                  >
-                    {/* Animated Background */}
-                    <motion.div
-                      animate={{ 
-                        rotate: [0, 360],
-                        scale: [1, 1.2, 1]
-                      }}
-                      transition={{ 
-                        duration: 8, 
-                        repeat: Infinity,
-                        ease: "linear"
-                      }}
-                      className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-purple-500/10 rounded-3xl"
-                    />
-                    
-                    <div className="relative z-10 text-center">
-                      <motion.div
-                        animate={{ 
-                          scale: [1, 1.1, 1],
-                          rotate: [0, 5, -5, 0]
-                        }}
-                        transition={{ 
-                          duration: 3, 
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                        className="text-3xl mb-4"
-                      >
-                        {stat.icon}
-                      </motion.div>
-                      
-                      <div className="text-3xl md:text-4xl font-black text-white mb-2">
-                        {stat.number}
-                      </div>
-                      
-                      <div className="text-gray-300 font-medium">
-                        {stat.label}
-                      </div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              ))}
-            </div>
+            <motion.div
+              whileHover={{ y: -12, scale: 1.03 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-200 ease-out"
+            >
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-200 ease-out"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+              >
+                <span className="text-2xl">👥</span>
+              </motion.div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Communauté Locale</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Connectez-vous avec des joueurs passionnés du quartier. 
+                Niveaux variés pour tous les styles de jeu.
+              </p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ y: -12, scale: 1.03 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 text-center group hover:shadow-xl transition-all duration-200 ease-out"
+            >
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-transform duration-200 ease-out"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+              >
+                <span className="text-2xl">⚡</span>
+              </motion.div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Rapide et Simple</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Interface intuitive pour proposer et trouver des matches. 
+                Calendrier interactif et notifications en temps réel.
+              </p>
+            </motion.div>
           </motion.div>
-        </section>
 
-        {/* CTA Section - Organic Shapes */}
-        <section className="py-32 px-6 relative">
-          <div className="max-w-4xl mx-auto text-center relative">
-            {/* Organic Background Shape */}
-            <motion.div
-              animate={{
-                scale: [1, 1.1, 1],
-                rotate: [0, 5, 0],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-purple-500/20 to-pink-500/20 rounded-[100px] blur-3xl -z-10"
-            />
+          {/* Court Information */}
+          <motion.div
+            variants={itemVariants}
+            className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-xl border border-white/50"
+          >
+            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-8 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+              Nos Terrains
+            </h2>
             
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="relative z-10"
-            >
-              <h2 className="text-4xl md:text-5xl font-black mb-8 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Prêt à rejoindre l'aventure ?
-              </h2>
-              
-              <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
-                Créez votre profil en quelques minutes et commencez à jouer avec des passionnés de tennis dans Outremont
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                {currentUser ? (
-                  <motion.div
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Link
-                      to="/submit"
-                      className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 text-lg"
-                    >
-                      <span className="mr-3">Créer mon profil</span>
-                      <motion.span
-                        animate={{ x: [0, 8, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        🚀
-                      </motion.span>
-                    </Link>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Link
-                      to="/login"
-                      className="inline-flex items-center px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 text-lg"
-                    >
-                      <span className="mr-3">Commencer maintenant</span>
-                      <motion.span
-                        animate={{ x: [0, 8, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        🚀
-                      </motion.span>
-                    </Link>
-                  </motion.div>
-                )}
-                
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
+            <div className="grid md:grid-cols-3 gap-8">
+              <motion.div
+                whileHover={{ scale: 1.08 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="text-center group"
+              >
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-r from-emerald-400 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform duration-200 ease-out"
+                  whileHover={{ scale: 1.15, rotate: 5 }}
                 >
-                  <Link
-                    to="/players"
-                    className="inline-flex items-center px-10 py-5 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-2xl hover:bg-white/20 transition-all duration-300 text-lg"
-                  >
-                    <span className="mr-3">Découvrir les joueurs</span>
-                    <span>👥</span>
-                  </Link>
+                  <span className="text-2xl">🏟️</span>
                 </motion.div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Terrains Saint-Viateur</h3>
+                <p className="text-gray-600 text-sm">4 terrains extérieurs</p>
+                <p className="text-gray-500 text-xs mt-1">Ouvert d'avril à octobre</p>
+              </motion.div>
 
-        {/* Footer */}
-        <footer className="py-16 px-6 border-t border-white/10">
-          <div className="max-w-6xl mx-auto text-center">
+              <motion.div
+                whileHover={{ scale: 1.08 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="text-center group"
+              >
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform duration-200 ease-out"
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                >
+                  <span className="text-2xl">🎾</span>
+                </motion.div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">FX-Garneau</h3>
+                <p className="text-gray-600 text-sm">2 terrains extérieurs</p>
+                <p className="text-gray-500 text-xs mt-1">Ouvert d'avril à octobre</p>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.08 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="text-center group"
+              >
+                <motion.div 
+                  className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform duration-200 ease-out"
+                  whileHover={{ scale: 1.15, rotate: 5 }}
+                >
+                  <span className="text-2xl">🏆</span>
+                </motion.div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Joyce</h3>
+                <p className="text-gray-600 text-sm">2 terrains extérieurs</p>
+                <p className="text-gray-500 text-xs mt-1">Ouvert d'avril à octobre</p>
+              </motion.div>
+            </div>
+
             <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="mt-8 text-center"
             >
-              <p className="text-gray-400 mb-4">
-                © 2024 Tennis Outremont. Tous droits réservés.
+              <p className="text-gray-600 text-lg">
+                Tous nos terrains sont équipés d'éclairage et accessibles en transport en commun.
               </p>
-              
-              <div className="flex justify-center space-x-6 text-sm text-gray-500">
-                <span>Communauté locale</span>
-                <span>•</span>
-                <span>Terrains officiels</span>
-                <span>•</span>
-                <span>100% gratuit</span>
-              </div>
             </motion.div>
-          </div>
-        </footer>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
