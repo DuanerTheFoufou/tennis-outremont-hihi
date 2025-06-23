@@ -100,21 +100,39 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-white/50">
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+          className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        >
+          <span className="text-2xl">📅</span>
+        </motion.div>
+        <motion.h3
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-2xl font-bold text-gray-900 mb-3"
+        >
           Votre Disponibilité Hebdomadaire
-        </h3>
-        <p className="text-gray-600 text-lg">
+        </motion.h3>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-gray-600 text-lg"
+        >
           Sélectionnez vos créneaux disponibles
-        </p>
+        </motion.p>
       </div>
 
       {/* Quick Actions */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        transition={{ delay: 0.5, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="mb-8"
       >
         <div className="flex flex-wrap justify-center gap-3">
@@ -122,8 +140,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             onClick={selectAll}
-            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-xl text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200 ease-out"
+            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-xl text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 ease-out"
           >
             Tout Sélectionner
           </motion.button>
@@ -131,8 +150,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             onClick={selectWeekends}
-            className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-out"
+            className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 ease-out"
           >
             Weekends
           </motion.button>
@@ -140,8 +160,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             onClick={selectWeekdays}
-            className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-out"
+            className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 ease-out"
           >
             Semaine
           </motion.button>
@@ -149,8 +170,9 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             type="button"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             onClick={clearAll}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 ease-out"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 ease-out"
           >
             Effacer Tout
           </motion.button>
@@ -169,7 +191,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ 
-              delay: 0.1 + dayIndex * 0.05, 
+              delay: 0.6 + dayIndex * 0.05, 
               duration: 0.6, 
               ease: [0.25, 0.46, 0.45, 0.94] 
             }}
@@ -188,7 +210,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ 
-                delay: 0.2 + timeIndex * 0.1, 
+                delay: 0.7 + timeIndex * 0.1, 
                 duration: 0.6, 
                 ease: [0.25, 0.46, 0.45, 0.94] 
               }}
@@ -215,17 +237,17 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
                     borderColor: isSelected ? '#16a34a' : isHovered ? '#bbf7d0' : '#e5e7eb'
                   }}
                   whileHover={{ 
-                    scale: 1.08,
+                    scale: 1.05,
                     backgroundColor: isSelected ? '#15803d' : '#f0fdf4',
                     borderColor: isSelected ? '#15803d' : '#bbf7d0',
-                    transition: { duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }
+                    transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
                   }}
                   whileTap={{ 
-                    scale: 0.92,
-                    transition: { duration: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }
+                    scale: 0.95,
+                    transition: { duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }
                   }}
                   transition={{ 
-                    delay: 0.3 + (timeIndex * 7 + dayIndex) * 0.02,
+                    delay: 0.8 + (timeIndex * 7 + dayIndex) * 0.02,
                     duration: 0.5,
                     ease: [0.25, 0.46, 0.45, 0.94]
                   }}
@@ -233,7 +255,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
                   onMouseLeave={() => setHoveredTime(null)}
                   onClick={(e) => handleTimeClick(e, day.key, timeSlot.key)}
                   className={`
-                    w-20 h-20 rounded-xl border-2 transition-all duration-200 ease-out
+                    w-20 h-20 rounded-xl border-2 transition-all duration-300 ease-out
                     flex items-center justify-center relative overflow-hidden
                     ${isSelected ? 'shadow-lg ring-2 ring-green-200' : 'shadow-sm hover:shadow-md'}
                     focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
@@ -264,7 +286,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
                         opacity: isHovered ? 0.4 : 0,
                         scale: isHovered ? 1.2 : 1
                       }}
-                      transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
                       className="text-gray-400 text-lg font-bold"
                     >
                       +
@@ -281,7 +303,7 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        transition={{ delay: 1.2, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="mt-10 pt-8 border-t border-gray-200"
       >
         <div className="flex items-center justify-center space-x-8 text-sm">
@@ -301,28 +323,31 @@ const InteractiveCalendar = ({ selectedTimes, onTimeToggle }) => {
       </motion.div>
 
       {/* Selected Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="mt-8 text-center"
-      >
-        <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-green-50 to-blue-50 text-gray-700 px-8 py-4 rounded-full border border-green-200 shadow-lg">
-          <motion.div 
-            key={getSelectedCount()}
-            initial={{ scale: 0.8, rotate: -10 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center"
-          >
-            <span className="text-white text-lg font-bold">{getSelectedCount()}</span>
-          </motion.div>
-          <div className="text-left">
-            <div className="text-lg font-semibold">{getSelectedSummary()}</div>
-            <div className="text-sm text-gray-500">Créneaux sélectionnés</div>
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.9 }}
+          transition={{ delay: 1.4, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mt-8 text-center"
+        >
+          <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-green-50 to-blue-50 text-gray-700 px-8 py-4 rounded-full border border-green-200 shadow-lg">
+            <motion.div 
+              key={getSelectedCount()}
+              initial={{ scale: 0.8, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center shadow-md"
+            >
+              <span className="text-white text-lg font-bold">{getSelectedCount()}</span>
+            </motion.div>
+            <div className="text-left">
+              <div className="text-lg font-semibold">{getSelectedSummary()}</div>
+              <div className="text-sm text-gray-500">Créneaux sélectionnés</div>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };
